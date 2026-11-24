@@ -23,6 +23,7 @@ export default {
       button(label, data, style);
     const text = [
       `# ${T("⚙️ Settings", "⚙️ Настройки")}`,
+      item(T("🗂 My brain", "🗂 Мой мозг"), "iva_menu:br:o"),
       item(T("🧠 Model", "🧠 Модель"), "iva_menu:mdl"),
       item(T("🤔 Thinking", "🤔 Размышления"), "iva_menu:thk"),
       item(T("🔍 Search", "🔍 Поиск"), "iva_menu:srch:o"),

@@ -77,6 +77,7 @@ import {
   resetMessageCopy,
 } from "./wizards.ts";
 import { createMenu } from "../lib/menu/index.ts";
+import { sendBrainTable } from "../lib/brain-table.ts";
 import { admitTelegramUpdate } from "./inbox.ts";
 import { isPrivateTelegramChat } from "#lib/telegram-private-chat.ts";
 import { readTelegramMessageText } from "#lib/telegram-rich-message.ts";
@@ -230,6 +231,8 @@ const editMessage = (
 // меню Telegram кормит таблица COMMANDS (agent/lib/i18n.ts).
 export const OUT_OF_BAND_COMMANDS = [
   "/menu",
+  "/mozg",
+  "/tablica",
   "/help",
   "/start",
   "/stop",
@@ -389,7 +392,13 @@ function fullQuestion(
   return `\n\n(${label}: «${question}»)`;
 }
 
-const PRIVATE_ONLY_COMMANDS = new Set(["/menu", "/model", "/think"]);
+const PRIVATE_ONLY_COMMANDS = new Set([
+  "/menu",
+  "/mozg",
+  "/tablica",
+  "/model",
+  "/think",
+]);
 
 // Мост ловит /stop и ■ до доставки в eve, поэтому отмена доходит до занятого агента.
 // Проверка пары и POST общие с webhook, в agent/lib/telegram-stop.ts.
@@ -1227,6 +1236,8 @@ type CommandHandler = (command: ControlCommand) => Promise<boolean>;
 
 const COMMAND_HANDLERS: Record<OutOfBandCommand, CommandHandler> = {
   "/menu": openMenu,
+  "/mozg": openBrain,
+  "/tablica": sendTable,
   "/help": ({ io, chatId }) => replyConfirmed(io, chatId, helpText()),
   // /start — кнопка Start у нового пользователя. Без этой ветки приветствие уходило
   // обычным ходом в модель: платный запрос ради «привет». Отвечает мост, out-of-band.
@@ -1250,6 +1261,30 @@ function isOutOfBandCommand(cmd: string): cmd is OutOfBandCommand {
   return (OUT_OF_BAND_COMMANDS as readonly string[]).includes(cmd);
 }
 
+// Просьбы словами, которые исполняет сам мост: без модели и токенов. Только целое сообщение
+// владельца, не пересылка.
+const PHRASES: Readonly<Record<string, OutOfBandCommand>> = {
+  "покажи мой мозг": "/mozg",
+  "мой мозг": "/mozg",
+  "покажи мозг": "/mozg",
+  "пришли таблицей": "/tablica",
+  "пришли таблицу": "/tablica",
+  "пришли мозг таблицей": "/tablica",
+};
+
+export function phraseCommand(
+  text: string,
+  forwarded: boolean,
+): OutOfBandCommand | null {
+  if (forwarded) return null;
+  const key = text
+    .trim()
+    .toLowerCase()
+    .replace(/[.!?…\s]+$/u, "")
+    .replace(/\s+/gu, " ");
+  return Object.hasOwn(PHRASES, key) ? PHRASES[key] : null;
+}
+
 function commandName(text: string): OutOfBandCommand | null {
   if (!text.startsWith("/")) return null;
   const cmd = text.split(/\s+/)[0].replace(/@\w+$/, "").toLowerCase();
@@ -1262,7 +1297,7 @@ async function handleCommand(
   text: string,
   io: ControlIo,
 ): Promise<boolean> {
-  const cmd = commandName(text);
+  const cmd = commandName(text) ?? phraseCommand(text, "forward_origin" in msg);
   if (cmd === null) return false;
   const command = trustedCommand({ update, msg, text, cmd, io });
   if (command === null) return false; // untrusted — let eve drop it
@@ -1307,6 +1342,27 @@ async function openMenu({ chatId, from }: ControlCommand) {
     .open(chatId, from)
     .catch((e: unknown) => log("menu error:", errorDetails(e).message));
   return true;
+}
+
+async function openBrain({ chatId, from }: ControlCommand) {
+  await menu
+    .open(chatId, from, { screen: "br" })
+    .catch((e: unknown) => log("brain menu error:", errorDetails(e).message));
+  return true;
+}
+
+async function sendTable({ chatId, io }: ControlCommand) {
+  const result = await sendBrainTable(chatId);
+  if (result.ok) return true;
+  log("brain table error:", result.error ?? "?");
+  return replyConfirmed(
+    io,
+    chatId,
+    tr(
+      "The table was not sent — try again in a minute.",
+      "Таблица не ушла — попробуй ещё раз через минуту.",
+    ),
+  );
 }
 
 // Out-of-band so it reaches a busy agent (an ordinary message would be queued by

@@ -69,6 +69,8 @@ export const tr = (en: string, ru: string): string =>
 // описание команды Telegram (там аргументов быть не должно).
 export const COMMANDS: ReadonlyArray<Command> = [
   { command: "menu", en: "settings menu", ru: "меню настроек" },
+  { command: "mozg", en: "my second brain", ru: "мой второй мозг" },
+  { command: "tablica", en: "my brain as Excel", ru: "мозг таблицей Excel" },
   { command: "help", en: "this list", ru: "этот список" },
   {
     command: "start",

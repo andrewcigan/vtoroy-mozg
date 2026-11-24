@@ -111,6 +111,8 @@ test("COMMANDS is the single source: menu first, advertised commands present", (
   assert.equal(commands[0], "menu");
   const expected = [
     "menu",
+    "mozg",
+    "tablica",
     "help",
     "start",
     "stop",
@@ -153,7 +155,7 @@ test("helpText keeps the argument hints from the original help", () => {
 
 test("botCommands returns Telegram command objects per language", () => {
   const { botEn, botRu } = probe();
-  assert.equal(botEn.length, 13);
+  assert.equal(botEn.length, 15);
   assert.equal(botEn[0].command, "menu");
   assert.equal(botEn[0].description, "settings menu");
   assert.equal(botRu[0].description, "меню настроек");

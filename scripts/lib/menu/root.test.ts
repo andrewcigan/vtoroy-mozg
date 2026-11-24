@@ -20,6 +20,7 @@ function makeCtx(lang: string) {
 }
 
 const englishButtons = [
+  ["🗂 My brain", "iva_menu:br:o"],
   ["🧠 Model", "iva_menu:mdl"],
   ["🤔 Thinking", "iva_menu:thk"],
   ["🔍 Search", "iva_menu:srch:o"],
@@ -40,6 +41,7 @@ const englishButtons = [
 ];
 
 const russianButtons = [
+  ["🗂 Мой мозг", "iva_menu:br:o"],
   ["🧠 Модель", "iva_menu:mdl"],
   ["🤔 Размышления", "iva_menu:thk"],
   ["🔍 Поиск", "iva_menu:srch:o"],

@@ -8,7 +8,7 @@
 //
 // Грамматика callback_data: "iva_menu:<sid>:<verb>[:<arg>[:<arg>]]" — ASCII, только
 // enum/индексы, <=64 байта (тот же принцип, что m:<index> в /model). Никаких user data.
-// sid: r srch rich voice lang chr core ub gws cron ntc sk st turn svc (+псевдо mdl/thk — хендофф в визарды).
+// sid: r srch rich voice lang chr core ub gws cron ntc sk br st turn svc (+псевдо mdl/thk — хендофф в визарды).
 // verbs: o(навигация) x(закрыть) pg:<n> rf(обновить) + data-вербы экрана (set key rs go
 // q:<i>:<v> skip fin redo apply do; ntc: ins:<0|0930|1130|1730>).
 
@@ -39,6 +39,7 @@ import gws from "./gws.ts";
 import crons from "./crons.ts";
 import notices from "./notices.ts";
 import skills from "./skills.ts";
+import brain from "./brain.ts";
 import status from "./status.ts";
 import turnPolicy from "./turn-policy.ts";
 import service from "./service.ts";
@@ -148,7 +149,7 @@ type MenuOptions = {
   deps: MenuDeps;
   screens?: ScreenRegistry;
 };
-type OpenOptions = { msgId?: number };
+type OpenOptions = { msgId?: number; screen?: string };
 
 function isMenuAwaitText(value: unknown): value is MenuAwaitText {
   return (
@@ -183,6 +184,7 @@ export const SCREENS = {
   cron: crons,
   ntc: notices,
   sk: skills,
+  br: brain,
   st: status,
   turn: turnPolicy,
   svc: service,
@@ -541,7 +543,7 @@ export function createMenu({
     ctx.lang = getLang();
     const uid = String(userId);
     const st = flows.start(chatId, uid, "menu", {
-      screen: "r",
+      screen: opts.screen ?? "r",
       page: 0,
       msgId: opts.msgId ?? null,
     });
