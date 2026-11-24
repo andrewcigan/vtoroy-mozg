@@ -392,6 +392,24 @@ test("rich: кривое значение .env названо на экране 
   ]);
 });
 
+// ── 2b'. voice: ключ OpenRouter уже есть ───────────────────────────────────────────────
+test("voice: с ключом OpenRouter экран говорит, что голос работает", async () => {
+  const envPath = join(tempDir("iva-env-voice-or-"), ".env");
+  writeFileSync(envPath, "OPENROUTER_API_KEY=or-test\n");
+  const h = makeCtx({
+    lang: "ru",
+    deps: { envPath, sc: () => Promise.resolve(true) },
+    screens: { voice: voiceScreen },
+  });
+  const view = await voiceScreen.render(
+    newState({ screen: "voice", chatId: 555 }),
+    h.ctx,
+  );
+  assert.match(view.text, /Голос работает ключом OpenRouter/u);
+  assert.doesNotMatch(view.text, /не распознаются/u);
+  assert.doesNotMatch(view.text, /or-test/u);
+});
+
 // ── 2c. voice: ключ Deepgram и язык распознавания ─────────────────────────────────────
 test("voice: ключ принимается в личке, пишется в .env, язык переключается", async () => {
   const dir = tempDir("iva-env-voice-");

@@ -25,6 +25,11 @@ import {
 import { readTelegramMessageText } from "./telegram-rich-message.ts";
 import { imageMediaType, MAX_IMAGE_BYTES } from "./attachment-ref.ts";
 import { appendDaily, localStamp, saveBlob } from "./vault-daily.ts";
+import {
+  SttError,
+  voiceConfigured as isVoiceConfigured,
+  type SttMeta,
+} from "./stt.ts";
 import type { TelegramRawMedia, TelegramRawMessage } from "./telegram-parts.ts";
 import { resolveVaultDir } from "@iva/vault-dir";
 
@@ -43,7 +48,7 @@ export type TelegramMediaEffects = {
   // Видит ли картинки сама модель чата. Видит — описание не нужно: картинку ей
   // приложит middleware провайдера по пути из контекста.
   readonly chatModelSeesImages: () => Promise<boolean>;
-  readonly transcribe: (audio: ArrayBuffer) => Promise<string>;
+  readonly transcribe: (audio: ArrayBuffer, meta?: SttMeta) => Promise<string>;
 };
 
 export type TelegramMediaPart = {
@@ -124,11 +129,9 @@ export async function processMediaPart(
     // Старое описание из кэша остаётся в силе: второй раз за ту же картинку не платим.
     const undecidedImage = isStillImage && cached?.vision === undefined;
     let chatSeesImage = false;
-    // Голос необязателен: без ключа Deepgram запись сохраняется, а модели идёт подводка
+    // Голос необязателен: без ключа Deepgram и без ключа OpenRouter запись сохраняется, а модели идёт подводка
     // «расшифровка не настроена» вместо заведомого 401 от провайдера.
-    const voiceConfigured = Boolean(
-      (process.env.DEEPGRAM_API_KEY ?? "").trim(),
-    );
+    const voiceConfigured = isVoiceConfigured();
     const needsTranscript =
       media.transcribe && voiceConfigured && cached?.transcript === undefined;
     if (!rel || undecidedImage || needsTranscript) {
@@ -234,14 +237,23 @@ export async function processMediaPart(
 
       if (needsTranscript) {
         try {
-          transcript = (await effects.transcribe(bytes)).trim();
+          transcript = (
+            await effects.transcribe(bytes, {
+              mimeType: media.mimeType,
+              fileName: media.fileName,
+              tag: media.tag,
+            })
+          ).trim();
           cacheEntry.transcript = transcript;
         } catch (error) {
           console.error(
-            "[telegram] Deepgram упал, оставляю только файл:",
+            "[telegram] расшифровка упала, оставляю только файл:",
             error,
           );
-          if (error instanceof Error && error.cause instanceof DOMException)
+          if (
+            error instanceof SttError ||
+            (error instanceof Error && error.cause instanceof DOMException)
+          )
             failures.push(sanitizeInbound(redactNotice(error.message)).text);
         }
       }

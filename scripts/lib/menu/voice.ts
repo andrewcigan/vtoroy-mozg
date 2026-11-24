@@ -199,10 +199,15 @@ export default {
       ...(hasKey
         ? []
         : [
-            ctx.tr(
-              "Voice notes aren't transcribed without a key.",
-              "Без ключа голосовые не распознаются.",
-            ),
+            (env.OPENROUTER_API_KEY ?? "").trim()
+              ? ctx.tr(
+                  "Voice works with your OpenRouter key. A Deepgram key is optional.",
+                  "Голос работает ключом OpenRouter. Ключ Deepgram не обязателен.",
+                )
+              : ctx.tr(
+                  "Voice notes aren't transcribed without a key.",
+                  "Без ключа голосовые не распознаются.",
+                ),
           ]),
       button(
         hasKey

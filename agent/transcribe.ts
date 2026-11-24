@@ -2,6 +2,11 @@
 // вторая половина «понять присланный файл», которую канал приносит в inbound-пайплайн.
 // Тело запроса — сырые байты, ответ → results.channels[0].alternatives[0].transcript.
 
+import { SttError, voiceConfigured, type SttMeta } from "./lib/stt.ts";
+import { transcribeOpenRouter } from "./lib/stt-openrouter.ts";
+
+export { SttError, voiceConfigured, type SttMeta };
+
 // Имена и термины владельца (DEEPGRAM_KEYTERMS, через запятую) уходят в запрос параметром
 // keyterm, по одному на слово: так nova-3 пишет их одинаково, а не «OJ» в одном голосовом и
 // «О, Джей» в другом (Keyterm Prompting). Лимит у Deepgram — 500 токенов на все keyterm
@@ -60,7 +65,16 @@ function keytermQuery(raw: string | undefined): string {
 
 const TRANSCRIBE_TIMEOUT_MS = 120_000;
 
-export async function transcribe(audio: ArrayBuffer): Promise<string> {
+// Есть ключ Deepgram — Deepgram, как у автора; нет — ключ OpenRouter, который платит за модель.
+export async function transcribe(
+  audio: ArrayBuffer,
+  meta: SttMeta = {},
+): Promise<string> {
+  if (
+    !(process.env.DEEPGRAM_API_KEY ?? "").trim() &&
+    (process.env.OPENROUTER_API_KEY ?? "").trim()
+  )
+    return transcribeOpenRouter(audio, meta);
   const language = process.env.DEEPGRAM_LANGUAGE || "multi";
   const url =
     `https://api.deepgram.com/v1/listen?model=nova-3&language=${language}` +

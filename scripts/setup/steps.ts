@@ -642,7 +642,9 @@ async function askDeepgramSettings(
   if (!key) {
     out.DEEPGRAM_LANGUAGE = out.DEEPGRAM_LANGUAGE || "multi";
     ctx.print(
-      `  ${ctx.t("Voice is off for now — enable it later in /menu → 🎤 Voice.", "Голос пока выключен — включите потом в /menu → 🎤 Голос.")}`,
+      out.OPENROUTER_API_KEY
+        ? `  ${ctx.t("Voice works with your OpenRouter key.", "Голос работает ключом OpenRouter.")}`
+        : `  ${ctx.t("Voice is off for now — enable it later in /menu → 🎤 Voice.", "Голос пока выключен — включите потом в /menu → 🎤 Голос.")}`,
     );
     return;
   }
@@ -1094,7 +1096,7 @@ function printSetupSummary(
     }${C.x}`,
   );
   ctx.print(
-    `  ${ctx.t("Provider", "Провайдер")}: ${provider} · ${ctx.t("Model", "Модель")}: ${C.g}${chosenModel}${C.x} · ${ctx.t("Voice", "Голос")}: ${out.DEEPGRAM_API_KEY ? out.DEEPGRAM_LANGUAGE : ctx.t("off (/menu → Voice)", "выкл (/menu → Голос)")} · ${ctx.t("Bot", "Бот")}: ${C.g}@${out.TELEGRAM_BOT_USERNAME}${C.x}`,
+    `  ${ctx.t("Provider", "Провайдер")}: ${provider} · ${ctx.t("Model", "Модель")}: ${C.g}${chosenModel}${C.x} · ${ctx.t("Voice", "Голос")}: ${out.DEEPGRAM_API_KEY ? out.DEEPGRAM_LANGUAGE : out.OPENROUTER_API_KEY ? "OpenRouter" : ctx.t("off (/menu → Voice)", "выкл (/menu → Голос)")} · ${ctx.t("Bot", "Бот")}: ${C.g}@${out.TELEGRAM_BOT_USERNAME}${C.x}`,
   );
   ctx.print(
     `  ${ctx.t("Access", "Доступ")}: ${out.TELEGRAM_ALLOWED_USER_IDS} · TZ: ${out.ASSISTANT_TIMEZONE} · vault: ${out.ASSISTANT_VAULT_DIR} · ${ctx.t("lang", "язык")}: ${out.AGENT_LANGUAGE}`,

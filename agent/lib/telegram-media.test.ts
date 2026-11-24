@@ -14,6 +14,7 @@ process.env.ASSISTANT_TIMEZONE = "UTC";
 process.env.AGENT_LANGUAGE = "en";
 process.env.TELEGRAM_BOT_TOKEN = "1:test-token";
 process.env.DEEPGRAM_API_KEY = "dg-test";
+delete process.env.OPENROUTER_API_KEY; // ключ хоста включил бы голос и там, где тест его выключает
 const modulePath = fileURLToPath(
   new URL("./telegram-media.ts", import.meta.url),
 );

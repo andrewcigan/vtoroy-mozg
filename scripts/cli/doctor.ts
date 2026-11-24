@@ -648,9 +648,12 @@ function checkEnvOptions(ctx: DoctorContext): void {
       `${ctx.envPath} has no IVA_PORT (a .env of Iva older than 0.3.15) — add the line IVA_PORT=<port>, or run: iva config`,
     );
   // voice is optional: without the key voice notes are saved but not transcribed
-  if (!(ctx.env.DEEPGRAM_API_KEY || "").trim())
+  if (
+    !(ctx.env.DEEPGRAM_API_KEY || "").trim() &&
+    !(ctx.env.OPENROUTER_API_KEY || "").trim()
+  )
     ctx.warn(
-      "voice notes are not transcribed (no DEEPGRAM_API_KEY) — /menu → 🎤 Voice",
+      "voice notes are not transcribed (no DEEPGRAM_API_KEY or OPENROUTER_API_KEY) — /menu → 🎤 Voice",
     );
   // web search is optional; check the key of the SELECTED provider (SEARCH_PROVIDER)
   const searchKey: Record<string, string> = {
