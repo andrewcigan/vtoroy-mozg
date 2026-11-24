@@ -118,7 +118,7 @@ export const UPDATE_COMPAT_FILE = "update-compat.json";
 
 /** What an owner runs when their CLI can no longer update itself. */
 export const REPAIR_COMMAND =
-  "curl -fsSL https://raw.githubusercontent.com/smixs/iva-agent/main/repair.sh | bash";
+  "curl -fsSL https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/main/repair.sh | bash";
 
 export type UpdaterCompat =
   | { readonly status: "ok" }

@@ -398,7 +398,7 @@ test("a release that needs a newer updater says so in the chat, command intact",
   );
   assert.equal(
     refusal.includes(
-      "curl -fsSL https://raw.githubusercontent.com/smixs/iva-agent/main/repair.sh | bash",
+      "curl -fsSL https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/main/repair.sh | bash",
     ),
     true,
     refusal,

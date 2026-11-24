@@ -1,0 +1,29 @@
+# Установка «Второго мозга» — инструкция для Claude
+
+Это версия Ивы (https://github.com/smixs/iva-agent, MIT) для воркшопа Pro Agents: голос ключом
+OpenRouter, пересланное сразу в карточки, экран «Мой мозг» и Excel.
+
+Ставь по навыку install-iva из этого репозитория: читай SKILL.md и файлы references, когда шаг их зовёт.
+
+https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/main/skills/install-iva/SKILL.md
+https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/main/skills/install-iva/references/preflight.md
+https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/main/skills/install-iva/references/target.md
+https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/main/skills/install-iva/references/access.md
+https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/main/skills/install-iva/references/server-security.md
+https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/main/skills/install-iva/references/iva-state.md
+https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/main/skills/install-iva/references/keys.md
+https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/main/skills/install-iva/references/finish.md
+https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/main/skills/install-iva/references/secrets.md
+https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/main/skills/install-iva/references/moy-sloy.md
+
+Отличия от обычной установки, они главнее:
+1. Говори по-русски, одной короткой фразой на шаг. Человек не программист и в терминал не ходит.
+2. Модель — только OpenRouter. Подписки Claude и ChatGPT, личный Telegram (userbot) и Google не
+   предлагай и не подключай.
+3. До установки попроси человека открыть своего бота и нажать Start, затем написать «привет»: без
+   этого бот не сможет ему ответить, хотя установщик напишет, что отправил подтверждение.
+4. Ключи человек вписывает сам в moy-mozg/klyuchi.env. В чат их не проси и не печатай.
+5. После установки поставь «мой слой»: references/moy-sloy.md.
+6. Готово, когда человек прислал голосовое и пересланный пост, а потом по «покажи мой мозг» увидел их.
+
+Если Ивы ещё нет под рукой у человека — сервер нужен отдельный: у Ивы есть доступ к его командам.

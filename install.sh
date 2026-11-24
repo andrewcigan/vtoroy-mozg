@@ -2,7 +2,7 @@
 #
 # Install Iva (a personal long-term-memory agent) with one command on a bare VPS:
 #
-#   curl -fsSL https://raw.githubusercontent.com/smixs/iva-agent/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/main/install.sh | bash
 #
 # Installs system dependencies (git, gh, python3, ffmpeg, pandoc, poppler), uv, Node 24+ (nvm),
 # npm dependencies, runs an interactive setup (Ollama + model + Telegram +
@@ -25,7 +25,7 @@ printf '\n  \033[36m⏳ Preparing environment / Идёт подготовка о
 set -Eeuo pipefail
 
 IVA_OS="$(uname -s)"
-REPO_URL="${REPO_URL:-https://github.com/smixs/iva-agent.git}"
+REPO_URL="${REPO_URL:-https://github.com/andrewcigan/vtoroy-mozg.git}"
 # IVA_BETA=1 - бета-обновления: всегда ветка beta, в main только выпуски (ADR-0018).
 if [ "${IVA_BETA:-}" = 1 ]; then
   [ "${BRANCH:-beta}" = beta ] || printf 'IVA_BETA=1: BRANCH=%s ignored, installing the beta branch\n' "$BRANCH" >&2
@@ -1170,6 +1170,14 @@ elif have_tty; then
   SETUP_DONE=true
 else
   warn "$(t "No terminal (/dev/tty) — skipping the wizard. Run it later: cd $PROJECT_DIR && npm run setup" "Нет терминала (/dev/tty) — пропускаю мастер. Запустите потом: cd $PROJECT_DIR && npm run setup")"
+fi
+
+# Первая установка: Ива сама не пишет и не тратит деньги без спроса, дневной потолок её фоновых
+# ходов задан. Включить: /menu → Уведомления или `iva proactive on`.
+if [ "$SETUP_DONE" = true ]; then
+  if ! (cd "$PROJECT_DIR" && node bin/iva.mjs proactive off && node bin/iva.mjs proactive set ceilingTokensPerDay 500000) </dev/null >/dev/null 2>&1; then
+    warn "$(t "Could not switch off proactive messages — run: iva proactive off" "Не смог выключить сообщения по своей инициативе — запустите: iva proactive off")"
+  fi
 fi
 
 # ─────────────────────────────────────────────────────────────────────────

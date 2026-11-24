@@ -7,7 +7,7 @@ automatic security updates on, Iva runs as `iva`. `bootstrap.sh` does all of it 
 
 ```bash
 umask 077; head -c 24 /dev/urandom | base64 | tr -d '/+=' > ~/.ssh/iva_sudo_password   # only if the file is missing
-scp -q bootstrap.sh root@<IP>:/root/   # from https://raw.githubusercontent.com/smixs/iva-agent/<branch>/bootstrap.sh (branch: iva-state.md)
+scp -q bootstrap.sh root@<IP>:/root/   # from https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/<branch>/bootstrap.sh (branch: iva-state.md)
 ssh root@<IP> 'umask 077; cat > /root/iva-pass' < ~/.ssh/iva_sudo_password
 ssh root@<IP> 'IVA_USER=iva IVA_PASS="$(cat /root/iva-pass)" IVA_PUBKEY="<public key line>" IVA_TZ=<tz> \
   IVA_DISABLE_PASSWORD_AUTH=1 bash /root/bootstrap.sh --non-interactive; rm -f /root/iva-pass'

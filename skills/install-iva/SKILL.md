@@ -1,7 +1,7 @@
 ---
 name: install-iva
 description: >
-  Install, check or repair Iva (the self-hosted Telegram assistant, github.com/smixs/iva-agent) on a person's VPS or on
+  Install, check or repair Iva (the self-hosted Telegram assistant, github.com/andrewcigan/vtoroy-mozg) on a person's VPS or on
   their own Mac, from the person's own computer over SSH, safely and repeatably. Use when someone says "install Iva",
   "установи Иву", "поставь Иву на сервер", pastes a hosting provider's "your server is ready" email, asks to check or fix
   their Iva, says the Iva bot stopped answering, or wants Iva updated — even if they don't explicitly say "install".
@@ -16,6 +16,8 @@ description: >
 Take a person from "I have a server" (or "use this Mac") to "my Iva bot answers me", doing every technical step yourself.
 The person is usually not technical. Every run is repeatable: check the state first, do only what is missing, and leave
 a server that only the person's key can enter.
+
+Read `USTANOVKA.txt` at the repository root first: its rules win over this file.
 
 Talk to the person in their language, in plain words, one short message per step. Show them what you found before you
 change anything.
@@ -33,6 +35,7 @@ done costs one check, not a redo.
 | 3. Server security | non-root user, key-only SSH, root login closed, firewall, fail2ban, security updates | `references/server-security.md` |
 | 4. Iva | install, repair, update or leave alone — decided by what is already there | `references/iva-state.md` |
 | 5. Keys | model, bot token, the person's Telegram ID — only what is missing | `references/keys.md` |
+| 5a. My layer | the person's own rules and skills are in place — after step 6 says the bot answers | `references/moy-sloy.md` |
 | 6. Finish | the bot answers the person; they know the one command to reach the server | `references/finish.md` |
 
 A Mac target skips steps 2 and 3 and installs locally (same installer; it sets up launchd itself).

@@ -4,7 +4,7 @@ Read the state first (as `iva`, with `export PATH=$HOME/.local/bin:$PATH`):
 
 ```bash
 ssh iva 'export PATH=$HOME/.local/bin:$PATH; command -v iva && iva version; iva status 2>&1 | tail -20; test -f ~/iva/.env && echo ENV_PRESENT; if test -f ~/iva/.iva-installed; then cat ~/iva/.iva-installed; fi'
-curl -fsSL https://api.github.com/repos/smixs/iva-agent/releases/latest | grep -m1 '"tag_name"'
+curl -fsSL https://api.github.com/repos/andrewcigan/vtoroy-mozg/releases/latest | grep -m1 '"tag_name"'
 ```
 
 | State | Action |
@@ -30,13 +30,13 @@ Write the minimal env file from step 5 (`references/keys.md`), copy it to the se
 
 ```bash
 ssh iva 'umask 077; cat > ~/iva-setup.env' < <local env file>
-ssh iva 'curl -fsSL https://raw.githubusercontent.com/smixs/iva-agent/main/install.sh | bash -s -- --env-file ~/iva-setup.env; rc=$?; rm -f ~/iva-setup.env; exit $rc'
+ssh iva 'curl -fsSL https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/main/install.sh | bash -s -- --env-file ~/iva-setup.env; rc=$?; rm -f ~/iva-setup.env; exit $rc'
 ```
 
 For an explicitly requested beta installation, use this installer command instead:
 
 ```bash
-ssh iva 'curl -fsSL https://raw.githubusercontent.com/smixs/iva-agent/beta/install.sh | IVA_BETA=1 bash -s -- --env-file ~/iva-setup.env; rc=$?; rm -f ~/iva-setup.env; exit $rc'
+ssh iva 'curl -fsSL https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/beta/install.sh | IVA_BETA=1 bash -s -- --env-file ~/iva-setup.env; rc=$?; rm -f ~/iva-setup.env; exit $rc'
 ```
 
 `--env-file` runs without questions, including when a terminal is available. It is accepted for a first install or an

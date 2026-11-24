@@ -4,7 +4,7 @@ set -Eeuo pipefail
 # One command for an Iva that cannot update itself any more. It repairs nothing on its
 # own: it puts the installation back on the release and hands the work to the one
 # updater, exactly as `iva update` would.
-#   curl -fsSL https://raw.githubusercontent.com/smixs/iva-agent/main/repair.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/main/repair.sh | bash
 
 INSTALL_DIR="${IVA_INSTALL_DIR:-${HOME}/iva}"
 
@@ -235,6 +235,7 @@ checkout_release() {
 is_official_remote() {
   case "$1" in
     https://github.com/smixs/iva-agent|https://github.com/smixs/iva-agent.git|git@github.com:smixs/iva-agent|git@github.com:smixs/iva-agent.git|ssh://git@github.com/smixs/iva-agent|ssh://git@github.com/smixs/iva-agent.git) return 0 ;;
+    https://github.com/andrewcigan/vtoroy-mozg|https://github.com/andrewcigan/vtoroy-mozg.git|git@github.com:andrewcigan/vtoroy-mozg|git@github.com:andrewcigan/vtoroy-mozg.git) return 0 ;;
     https://github.com/smixs/iva|https://github.com/smixs/iva.git|git@github.com:smixs/iva|git@github.com:smixs/iva.git|ssh://git@github.com/smixs/iva|ssh://git@github.com/smixs/iva.git) return 0 ;;
     *) return 1 ;;
   esac
@@ -244,7 +245,7 @@ origin_url="$(git -C "$INSTALL_DIR" remote get-url origin 2>/dev/null || true)"
 if ! is_official_remote "$origin_url"; then
   [ -d "$origin_url" ] \
     && [ "$(git --git-dir="$origin_url" rev-parse --is-bare-repository 2>/dev/null)" = "true" ] \
-    || die "origin is not github.com/smixs/iva-agent"
+    || die "origin is not github.com/andrewcigan/vtoroy-mozg or github.com/smixs/iva-agent"
 fi
 
 # Та же ветка, на которой сидит установка: `iva rollback` пишет её в git config, и
