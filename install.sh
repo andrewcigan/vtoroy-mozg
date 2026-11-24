@@ -1174,8 +1174,8 @@ fi
 
 # Первая установка: Ива сама не пишет и не тратит деньги без спроса, дневной потолок её фоновых
 # ходов задан. Включить: /menu → Уведомления или `iva proactive on`.
-if [ "$SETUP_DONE" = true ]; then
-  if ! (cd "$PROJECT_DIR" && node bin/iva.mjs proactive off && node bin/iva.mjs proactive set ceilingTokensPerDay 500000) </dev/null >/dev/null 2>&1; then
+if [ "$SETUP_DONE" = true ] && [ ! -f "$PROJECT_DIR/.iva-installed" ]; then
+  if ! (cd "$PROJECT_DIR" && node bin/iva.mjs proactive off && node bin/iva.mjs proactive set ceilingTokensPerDay 500000) </dev/null >/dev/null; then
     warn "$(t "Could not switch off proactive messages — run: iva proactive off" "Не смог выключить сообщения по своей инициативе — запустите: iva proactive off")"
   fi
 fi

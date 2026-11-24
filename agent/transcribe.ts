@@ -2,10 +2,8 @@
 // вторая половина «понять присланный файл», которую канал приносит в inbound-пайплайн.
 // Тело запроса — сырые байты, ответ → results.channels[0].alternatives[0].transcript.
 
-import { SttError, voiceConfigured, type SttMeta } from "./lib/stt.ts";
+import { SttError, type SttMeta } from "./lib/stt.ts";
 import { transcribeOpenRouter } from "./lib/stt-openrouter.ts";
-
-export { SttError, voiceConfigured, type SttMeta };
 
 // Имена и термины владельца (DEEPGRAM_KEYTERMS, через запятую) уходят в запрос параметром
 // keyterm, по одному на слово: так nova-3 пишет их одинаково, а не «OJ» в одном голосовом и
@@ -91,7 +89,7 @@ export async function transcribe(
       },
       body: audio,
     });
-    if (!res.ok) throw new Error(`Deepgram HTTP ${res.status}`);
+    if (!res.ok) throw new SttError(`Deepgram ответил ошибкой ${res.status}`);
     const json = (await res.json()) as {
       results?: {
         channels?: Array<{ alternatives?: Array<{ transcript?: string }> }>;

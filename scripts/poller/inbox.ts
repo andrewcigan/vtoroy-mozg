@@ -179,8 +179,7 @@ export function selectReadyInboxBatch(
     const update = item.update;
     if (updateIds.length === 0) {
       arrivedAt = item.enqueuedAt;
-      resetFence =
-        typeof item.resetFence === "number" ? item.resetFence : null;
+      resetFence = typeof item.resetFence === "number" ? item.resetFence : null;
     }
     updateIds.push(item.updateId);
     const offered = collectorOffer(collector, update, item.enqueuedAt);

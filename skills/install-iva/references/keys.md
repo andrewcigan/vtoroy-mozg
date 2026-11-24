@@ -25,14 +25,7 @@ TELEGRAM_ALLOWED_USER_IDS=<id>
 ASSISTANT_TIMEZONE=<tz>
 ```
 
-Provider variable names: `opencode` → `OPENCODE_API_KEY`/`OPENCODE_MODEL`; `ollama` → `OLLAMA_API_KEY`/`OLLAMA_MODEL`;
-`openrouter` → `OPENROUTER_API_KEY`/`OPENROUTER_MODEL`; `codex` (ChatGPT) → `CODEX_MODEL` + sign-in; `claude` →
-`CLAUDE_MODEL` + sign-in. Everything else the installer fills in.
-
-For a subscription on a fresh machine, first run the installer with `--non-interactive` and no env file to prepare
-the CLI and dependencies. Complete the sign-in, then repeat the installer with `--env-file` using the collected answers.
-Preparation leaves `autostart=false` in `.iva-installed`, so the next run continues the first installation and configures
-autostart. The subscription must be signed in before the env file can pass validation.
+Subscriptions (Claude, ChatGPT) are not offered in this version: the model is OpenRouter. Everything else the installer fills in.
 
 A bot already connected to another service (a webhook is set — `getWebhookInfo` shows a URL) answers nobody through
 Iva: ask the person before `deleteWebhook`.

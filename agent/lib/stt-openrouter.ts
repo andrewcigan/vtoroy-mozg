@@ -4,6 +4,7 @@ import { spawn } from "node:child_process";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { redactNotice } from "./outbox.ts";
 import { SttError, type SttMeta } from "./stt.ts";
 
 const URL_STT = "https://openrouter.ai/api/v1/audio/transcriptions";
@@ -80,22 +81,30 @@ function runFfmpeg(input: string, output: string): Promise<void> {
       err += chunk.toString();
     });
     child.on("error", (error) => {
+      console.error(`[transcribe] ffmpeg не запустился: ${error.message}`);
       reject(
-        new SttError("не смог достать звук из видео: на сервере нет ffmpeg", {
-          cause: error,
-        }),
+        new SttError(
+          (error as NodeJS.ErrnoException).code === "ENOENT"
+            ? "не смог достать звук: на сервере нет ffmpeg"
+            : "не смог достать звук: ffmpeg не запустился",
+          { cause: error },
+        ),
       );
     });
-    child.on("close", (code) => {
+    child.on("close", (code, killed) => {
       if (code === 0) {
         resolve();
         return;
       }
       console.error(
-        `[transcribe] ffmpeg ${String(code)}: ${err.slice(0, 300)}`,
+        `[transcribe] ffmpeg ${String(code ?? killed)}: ${redactNotice(err.slice(0, 300))}`,
       );
       reject(
-        new SttError("не смог достать звук из видео: похоже, в нём нет звука"),
+        new SttError(
+          killed
+            ? "не смог достать звук: запись слишком долгая"
+            : "не смог достать звук: похоже, в файле его нет",
+        ),
       );
     });
   });
@@ -150,11 +159,17 @@ export async function transcribeOpenRouter(
     if (!res.ok) {
       // Тело — причина провайдера для журнала; человеку идёт короткая понятная фраза.
       console.error(
-        `[transcribe] OpenRouter ${res.status}: ${(await res.text()).slice(0, 300)}`,
+        `[transcribe] OpenRouter ${res.status}: ${redactNotice((await res.text()).slice(0, 300))}`,
       );
       throw new SttError(reason(res.status));
     }
-    const json = (await res.json()) as { text?: unknown };
+    const json = (await res.json()) as { text?: unknown; error?: unknown };
+    if (json.error !== undefined) {
+      console.error(
+        `[transcribe] OpenRouter 200 с ошибкой: ${redactNotice(JSON.stringify(json.error).slice(0, 300))}`,
+      );
+      throw new SttError("OpenRouter не смог расшифровать запись");
+    }
     const text = typeof json.text === "string" ? json.text.trim() : "";
     if (!text) throw new SttError("в записи не слышно слов");
     return text;
@@ -163,6 +178,12 @@ export async function transcribeOpenRouter(
       throw new SttError(`OpenRouter не ответил за ${TIMEOUT_MS / 1000} с`, {
         cause: error,
       });
-    throw error;
+    if (error instanceof SttError) throw error;
+    console.error(
+      `[transcribe] нет связи с OpenRouter: ${error instanceof Error ? error.message : String(error)}`,
+    );
+    throw new SttError("нет связи с OpenRouter — попробуй ещё раз", {
+      cause: error,
+    });
   }
 }

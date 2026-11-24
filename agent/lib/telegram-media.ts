@@ -244,7 +244,8 @@ export async function processMediaPart(
               tag: media.tag,
             })
           ).trim();
-          cacheEntry.transcript = transcript;
+          // Пустая расшифровка — не факт о записи: в кэш не кладём, в следующий раз попробуем снова.
+          if (transcript) cacheEntry.transcript = transcript;
         } catch (error) {
           console.error(
             "[telegram] расшифровка упала, оставляю только файл:",

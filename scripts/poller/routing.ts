@@ -250,8 +250,7 @@ export async function routeMessageUpdate(
       candidate: TelegramQueueUpdate,
       enqueuedAt?: number,
       resetFence?: number | null,
-    ) =>
-      enqueueTelegramQueueUpdate(key, candidate, enqueuedAt, { resetFence }),
+    ) => enqueueTelegramQueueUpdate(key, candidate, enqueuedAt, { resetFence }),
     arrivedAt,
     resetFence,
     acknowledgeImpl = acknowledgeQueued,

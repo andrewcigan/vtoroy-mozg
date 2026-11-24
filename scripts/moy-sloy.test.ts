@@ -92,6 +92,16 @@ for (const [name, files, want] of [
     },
     /ключ/u,
   ],
+  [
+    "ключ GitHub",
+    { "pravila.md": "ghp_abcdefghijklmnopqrstuvwxyz0123456789" },
+    /ключ/u,
+  ],
+  [
+    "незаполненный шаблон о себе",
+    { "obo-mne.md": "- Имя: …" },
+    /незаполненные/u,
+  ],
   ["правила длиннее предела", { "pravila.md": "я".repeat(2501) }, /2500/u],
   ["о себе длиннее предела", { "obo-mne.md": "я".repeat(3601) }, /3600/u],
   ["навык без description", { "navyki/a.md": "# А\n" }, /description/u],
@@ -105,6 +115,42 @@ for (const [name, files, want] of [
     assert.equal(existsSync(join(at.data, "custom")), false);
     assert.equal(readFileSync(join(at.vault, "CORE.md"), "utf8"), TEMPLATE);
   });
+
+await test("навык Ивы с тем же именем не затираем; свой прежний — обновляем", () => {
+  const at = place();
+  put(at.data, { "custom/agent/skills/novost.md": "навык Ивы" });
+  const bad = installLayer(layer({ "navyki/novost.md": SKILL }), at);
+  assert.match(bad.errors.join("\n"), /уже есть/u);
+  assert.equal(
+    readFileSync(join(at.data, "custom/agent/skills/novost.md"), "utf8"),
+    "навык Ивы",
+  );
+  const clean = place();
+  assert.deepEqual(
+    installLayer(layer({ "navyki/novost.md": SKILL }), clean).errors,
+    [],
+  );
+  assert.deepEqual(
+    installLayer(layer({ "navyki/novost.md": `${SKILL}второе` }), clean).errors,
+    [],
+  );
+  assert.match(
+    readFileSync(join(clean.data, "custom/agent/skills/novost.md"), "utf8"),
+    /второе/u,
+  );
+  put(clean.data, { "custom/agent/skills/novost.md": "изменила Ива" });
+  assert.match(
+    installLayer(layer({ "navyki/novost.md": SKILL }), clean).errors.join("\n"),
+    /изменён/u,
+  );
+});
+
+await test("ссылка на папку навыков — отказ", () => {
+  const at = place();
+  const src = layer({ "pravila.md": "а" });
+  symlinkSync(layer({ "a.md": SKILL }), join(src, "navyki"));
+  assert.match(installLayer(src, at).errors.join("\n"), /ссылка/u);
+});
 
 await test("ссылка наружу вместо файла — отказ", () => {
   const at = place();

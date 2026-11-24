@@ -12,6 +12,7 @@ import { createProactiveCommand } from "./proactive.ts";
 import { createNightCommand } from "./night.ts";
 import { createRemindCommand } from "./remind.ts";
 import { createSignalCommand } from "./signal.ts";
+import { createSloyCommand } from "./sloy.ts";
 import { createCliRuntime } from "./runtime.ts";
 import { createServiceCommands } from "./services.ts";
 import { createCliSystemd } from "./systemd.ts";
@@ -123,6 +124,7 @@ ${C.b}Commands:${C.x}
   ${C.c}iva proactive${C.x} show|on|off|set <key> <value>  Watch, Brief and Insight settings
   ${C.c}iva night${C.x} show|set <key> <value>  Night memory limits and ceilings
   ${C.c}iva signal${C.x} <source> <text> [--key <k>]  pass a plugin's Signal to Iva; the same key is skipped while pending
+  ${C.c}iva sloy${C.x} <folder>  install or update your own layer: rules, skills, about me
   ${C.c}iva post${C.x} --md-file <p>  rich Telegram post to the digest chat or an allowlisted --chat
   ${C.c}iva userbot${C.x} [creds|setup|status|diagnose --json|off]  personal-account userbot proxy
   ${C.c}iva logs${C.x} [poll]     agent logs (or the Telegram bridge) -f
@@ -190,6 +192,7 @@ export function createCliMain(root: string) {
     proactive: createProactiveCommand(runtime),
     night: createNightCommand(runtime),
     signal: cmdSignal,
+    sloy: createSloyCommand(root, runtime),
     start: services.cmdStart,
     stop: services.cmdStop,
     logs: services.cmdLogs,

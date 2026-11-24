@@ -22,8 +22,16 @@ https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/main/skills/install-iv
    предлагай и не подключай.
 3. До установки попроси человека открыть своего бота и нажать Start, затем написать «привет»: без
    этого бот не сможет ему ответить, хотя установщик напишет, что отправил подтверждение.
-4. Ключи человек вписывает сам в moy-mozg/klyuchi.env. В чат их не проси и не печатай.
-5. После установки поставь «мой слой»: references/moy-sloy.md.
-6. Готово, когда человек прислал голосовое и пересланный пост, а потом по «покажи мой мозг» увидел их.
+4. Начни с папки участника. Нет `moy-mozg/` рядом — создай её и скачай шаблоны (не затирая готовое):
+   https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/main/moy-mozg/pravila.md
+   https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/main/moy-mozg/obo-mne.md
+   https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/main/moy-mozg/navyki/moy-navyk.md
+   https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/main/moy-mozg/klyuchi.env.example
+   Скопируй klyuchi.env.example в klyuchi.env и закрой его: chmod 600 (Windows: icacls, только владелец).
+5. Ключи человек сам вписывает в moy-mozg/klyuchi.env. В чат их не проси, не печатай, файл не читай
+   в разговор: на сервер он уходит трубой, как в references/secrets.md. Это и есть файл для --env-file.
+6. Порядок: папка и ключи → Start у бота и ID (references/keys.md) → установка → «мой слой»
+   (references/moy-sloy.md) → человек пишет боту. Слой ставь сразу после установщика, до первых сообщений.
+7. Готово, когда человек прислал голосовое и пересланный пост, а потом по «покажи мой мозг» увидел их.
 
 Если Ивы ещё нет под рукой у человека — сервер нужен отдельный: у Ивы есть доступ к его командам.

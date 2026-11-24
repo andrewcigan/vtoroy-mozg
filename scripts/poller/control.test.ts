@@ -3278,7 +3278,11 @@ test("a Try again tap after a first-request break brings the question to an empt
   const result = await step(
     {
       agent: { system: "Ты Ива.", tools: [], modelReference: { id: "t/m" } },
-      compaction: { threshold: 100_000, recentWindowTokens: 100, summaryMaxOutputTokens: 400 },
+      compaction: {
+        threshold: 100_000,
+        recentWindowTokens: 100,
+        summaryMaxOutputTokens: 400,
+      },
       continuationToken: "t",
       sessionId: "t",
       history: [],

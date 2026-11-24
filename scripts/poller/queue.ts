@@ -616,7 +616,7 @@ export function resetEpochFor(chatKey: string): number | undefined {
   const pending = pendingResetEpoch(chatKey);
   if (pending !== undefined) return pending;
   const epoch = getChatStatus(chatKey)?.resetEpoch;
-  return Number.isSafeInteger(epoch) ? (epoch) : undefined;
+  return Number.isSafeInteger(epoch) ? epoch : undefined;
 }
 
 const requestResetFromIntent: ResetRequestImpl = ({

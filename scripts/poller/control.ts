@@ -77,7 +77,7 @@ import {
   resetMessageCopy,
 } from "./wizards.ts";
 import { createMenu } from "../lib/menu/index.ts";
-import { sendBrainTable } from "../lib/brain-table.ts";
+import { sendBrainTableInBackground } from "../lib/brain-table.ts";
 import { admitTelegramUpdate } from "./inbox.ts";
 import { isPrivateTelegramChat } from "#lib/telegram-private-chat.ts";
 import { readTelegramMessageText } from "#lib/telegram-rich-message.ts";
@@ -1262,21 +1262,20 @@ function isOutOfBandCommand(cmd: string): cmd is OutOfBandCommand {
 }
 
 // Просьбы словами, которые исполняет сам мост: без модели и токенов. Только целое сообщение
-// владельца, не пересылка.
+// владельца в личке, не пересылка; в каждой фразе есть «мозг», чтобы не перехватить ответ на
+// вопрос Ивы («пришли таблицу» в разговоре о расходах — не сюда).
 const PHRASES: Readonly<Record<string, OutOfBandCommand>> = {
   "покажи мой мозг": "/mozg",
-  "мой мозг": "/mozg",
   "покажи мозг": "/mozg",
-  "пришли таблицей": "/tablica",
-  "пришли таблицу": "/tablica",
   "пришли мозг таблицей": "/tablica",
+  "пришли мой мозг таблицей": "/tablica",
 };
 
 export function phraseCommand(
   text: string,
-  forwarded: boolean,
+  { forwarded, privateChat }: { forwarded: boolean; privateChat: boolean },
 ): OutOfBandCommand | null {
-  if (forwarded) return null;
+  if (forwarded || !privateChat) return null;
   const key = text
     .trim()
     .toLowerCase()
@@ -1297,7 +1296,12 @@ async function handleCommand(
   text: string,
   io: ControlIo,
 ): Promise<boolean> {
-  const cmd = commandName(text) ?? phraseCommand(text, "forward_origin" in msg);
+  const cmd =
+    commandName(text) ??
+    phraseCommand(text, {
+      forwarded: "forward_origin" in msg,
+      privateChat: isPrivateTelegramChat(msg.chat),
+    });
   if (cmd === null) return false;
   const command = trustedCommand({ update, msg, text, cmd, io });
   if (command === null) return false; // untrusted — let eve drop it
@@ -1351,18 +1355,18 @@ async function openBrain({ chatId, from }: ControlCommand) {
   return true;
 }
 
-async function sendTable({ chatId, io }: ControlCommand) {
-  const result = await sendBrainTable(chatId);
-  if (result.ok) return true;
-  log("brain table error:", result.error ?? "?");
-  return replyConfirmed(
-    io,
-    chatId,
-    tr(
-      "The table was not sent — try again in a minute.",
-      "Таблица не ушла — попробуй ещё раз через минуту.",
+function sendTable({ chatId, io }: ControlCommand): Promise<boolean> {
+  sendBrainTableInBackground(chatId, () =>
+    replyConfirmed(
+      io,
+      chatId,
+      tr(
+        "The table was not sent — try again in a minute.",
+        "Таблица не ушла — попробуй ещё раз через минуту.",
+      ),
     ),
   );
+  return Promise.resolve(true);
 }
 
 // Out-of-band so it reaches a busy agent (an ordinary message would be queued by

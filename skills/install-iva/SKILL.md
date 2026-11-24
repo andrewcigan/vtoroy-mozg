@@ -35,7 +35,7 @@ done costs one check, not a redo.
 | 3. Server security | non-root user, key-only SSH, root login closed, firewall, fail2ban, security updates | `references/server-security.md` |
 | 4. Iva | install, repair, update or leave alone — decided by what is already there | `references/iva-state.md` |
 | 5. Keys | model, bot token, the person's Telegram ID — only what is missing | `references/keys.md` |
-| 5a. My layer | the person's own rules and skills are in place — after step 6 says the bot answers | `references/moy-sloy.md` |
+| 5a. My layer | the person's own rules and skills are in place — right after the installer, before the first message | `references/moy-sloy.md` |
 | 6. Finish | the bot answers the person; they know the one command to reach the server | `references/finish.md` |
 
 A Mac target skips steps 2 and 3 and installs locally (same installer; it sets up launchd itself).

@@ -1,8 +1,10 @@
 // Кладёт «мой слой» участника в установку: pravila.md → правила, navyki/*.md → навыки,
 // obo-mne.md → vault/CORE.md (только пока там шаблон). Ключи не переносит. Сначала проверяет всё,
-// потом пишет: наполовину поставленного слоя не бывает.
+// потом пишет: наполовину поставленного слоя не бывает. Зовёт его `iva sloy <папка>`.
 //
-//   cd ~/iva && node scripts/moy-sloy.ts <папка>
+// Чужое не затираем: что положил слой, помнит data/moy-sloy.json. Файла с таким именем слой не
+// клал, или его потом изменили (Ива или владелец) — отказ с понятной причиной.
+import { createHash } from "node:crypto";
 import {
   existsSync,
   lstatSync,
@@ -11,15 +13,21 @@ import {
   readdirSync,
 } from "node:fs";
 import { basename, dirname, join } from "node:path";
-import { dataDir } from "#lib/data-dir.ts";
+import { CORE_CAP } from "#lib/core-cap.ts";
 import { parseFrontmatter } from "#lib/frontmatter.ts";
 import { writeFileAtomicSync } from "#lib/fs-atomic.ts";
-import { resolveVaultDir } from "../packages/vault-dir/index.ts";
+import { scanOutbound } from "#lib/security-gate.ts";
 
 const RULES_MAX = 2500; // вместе с правилами, которые Ива пишет сама, у них общий предел 4000
-const CORE_MAX = 3600;
+const MANIFEST = "moy-sloy.json";
+// Токен Telegram-бота и прочие ключи ловит исходящий гейт; эти формы — на случай, если гейт их не знает.
 const SECRET =
-  /sk-[A-Za-z0-9_-]{16,}|\b\d{8,10}:[A-Za-z0-9_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----/u;
+  /ghp_[A-Za-z0-9]{20,}|AIza[A-Za-z0-9_-]{20,}|sk-[A-Za-z0-9_-]{16,}|\b\d{8,10}:[A-Za-z0-9_-]{30,}/u;
+
+const hasSecret = (text: string): boolean =>
+  SECRET.test(text) || !scanOutbound(text).clean;
+const hash = (text: string): string =>
+  createHash("sha256").update(text).digest("hex");
 
 export type LayerPlace = { data: string; vault: string; template: string };
 export type LayerResult = {
@@ -35,7 +43,7 @@ function readPlain(file: string, errors: string[]): string | null {
     return null;
   }
   const text = readFileSync(file, "utf8").trim();
-  if (SECRET.test(text))
+  if (hasSecret(text))
     errors.push(
       `${basename(file)}: внутри ключ или токен — ему место в klyuchi.env`,
     );
@@ -54,6 +62,10 @@ function tooLong(
 
 function readSkills(dir: string, errors: string[]): [string, string][] {
   if (!existsSync(dir)) return [];
+  if (!lstatSync(dir).isDirectory()) {
+    errors.push("navyki: это ссылка или файл, нужна обычная папка");
+    return [];
+  }
   return readdirSync(dir)
     .filter((name) => name.endsWith(".md"))
     .sort()
@@ -82,60 +94,98 @@ function coreIsTemplate(place: LayerPlace): boolean {
   });
 }
 
-function write(file: string, text: string, written: string[]) {
+function readManifest(file: string): Record<string, string> {
+  if (!existsSync(file)) return {};
+  const raw: unknown = JSON.parse(readFileSync(file, "utf8"));
+  if (typeof raw !== "object" || raw === null) return {};
+  return Object.fromEntries(
+    Object.entries(raw).filter(
+      (pair): pair is [string, string] => typeof pair[1] === "string",
+    ),
+  );
+}
+
+// Занят ли файл чужим содержимым: слой его не клал или его с тех пор изменили.
+function foreign(
+  file: string,
+  key: string,
+  next: string,
+  manifest: Record<string, string>,
+): boolean {
+  if (!existsSync(file)) return false;
+  const now = readFileSync(file, "utf8");
+  return now !== next && manifest[key] !== hash(now);
+}
+
+type Planned = { key: string; file: string; text: string };
+
+function plan(
+  place: LayerPlace,
+  rules: string | null,
+  skills: [string, string][],
+): Planned[] {
+  const custom = join(place.data, "custom/agent");
+  const files: [string, string][] = [
+    ...(rules
+      ? [["instructions/moy-sloy.md", `${rules}\n`] as [string, string]]
+      : []),
+    ...skills.map(([name, text]): [string, string] => [`skills/${name}`, text]),
+  ];
+  return files.map(([key, text]) => ({ key, file: join(custom, key), text }));
+}
+
+function write(file: string, text: string) {
   mkdirSync(dirname(file), { recursive: true });
   writeFileAtomicSync(file, text);
-  written.push(file);
+}
+
+function checkAbout(about: string | null, errors: string[]) {
+  if (about && /(^|\s)…\s*$/mu.test(about))
+    errors.push(
+      "obo-mne.md: остались незаполненные строки с «…» — заполните или уберите",
+    );
+}
+
+function writeAbout(place: LayerPlace, about: string, result: LayerResult) {
+  const core = join(place.vault, "CORE.md");
+  if (coreIsTemplate(place)) {
+    write(core, `${about}\n`);
+    result.written.push(core);
+  } else if (readFileSync(core, "utf8").trim() !== about)
+    result.notes.push(
+      "файл о себе не трогаю: в нём уже не шаблон. Скажите Иве словами, что изменить",
+    );
 }
 
 export function installLayer(source: string, place: LayerPlace): LayerResult {
-  const errors: string[] = [];
-  const notes: string[] = [];
-  const written: string[] = [];
+  const result: LayerResult = { errors: [], notes: [], written: [] };
+  const { errors } = result;
   const rules = readPlain(join(source, "pravila.md"), errors);
   const about = readPlain(join(source, "obo-mne.md"), errors);
   const skills = readSkills(join(source, "navyki"), errors);
   tooLong("pravila.md", rules, RULES_MAX, errors);
-  tooLong("obo-mne.md", about, CORE_MAX, errors);
+  tooLong("obo-mne.md", about, CORE_CAP, errors);
+  checkAbout(about, errors);
   if (!rules && !about && !skills.length && !errors.length)
     errors.push(
       "в папке нечего ставить: нужны pravila.md, obo-mne.md или navyki/*.md",
     );
-  if (errors.length) return { errors, notes, written };
-  if (rules)
-    write(
-      join(place.data, "custom/agent/instructions/moy-sloy.md"),
-      `${rules}\n`,
-      written,
-    );
-  for (const [name, text] of skills)
-    write(join(place.data, "custom/agent/skills", name), text, written);
-  if (about) {
-    if (coreIsTemplate(place))
-      write(join(place.vault, "CORE.md"), `${about}\n`, written);
-    else if (
-      readFileSync(join(place.vault, "CORE.md"), "utf8").trim() !== about
-    )
-      notes.push(
-        "файл о себе не трогаю: Ива уже накопила в нём своё. Скажите ей словами, что изменить",
+  const manifestFile = join(place.data, MANIFEST);
+  const manifest = readManifest(manifestFile);
+  const planned = plan(place, rules, skills);
+  for (const { key, file, text } of planned)
+    if (foreign(file, key, text, manifest))
+      errors.push(
+        `${basename(file)}: такой файл у Ивы уже есть, и он не из слоя или изменён — назовите свой иначе`,
       );
+  if (errors.length) return result;
+  for (const { key, file, text } of planned) {
+    write(file, text);
+    manifest[key] = hash(text);
+    result.written.push(file);
   }
-  return { errors, notes, written };
-}
-
-if (import.meta.main) {
-  const source = process.argv[2];
-  if (!source) {
-    console.error("Как: node scripts/moy-sloy.ts <папка моего слоя>");
-    process.exit(2);
-  }
-  const result = installLayer(source, {
-    data: dataDir(),
-    vault: resolveVaultDir(process.cwd()),
-    template: join(process.cwd(), "vault-template"),
-  });
-  for (const line of result.errors) console.error(`✖ ${line}`);
-  for (const line of result.notes) console.log(`• ${line}`);
-  for (const file of result.written) console.log(`✓ ${file}`);
-  process.exit(result.errors.length ? 1 : 0);
+  if (planned.length)
+    write(manifestFile, `${JSON.stringify(manifest, null, 2)}\n`);
+  if (about) writeAbout(place, about, result);
+  return result;
 }

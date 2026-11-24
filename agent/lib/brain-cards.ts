@@ -1,8 +1,13 @@
 // Обзор второго мозга для человека: карточки vault одной строкой. Читают экран «Мой мозг»
 // (scripts/lib/menu/brain.ts) и выгрузка Excel; модель здесь не участвует.
 import { readFileSync } from "node:fs";
-import { basename } from "node:path";
-import { extractH1, listCardFiles } from "./card-store.ts";
+import { basename, relative } from "node:path";
+import {
+  extractH1,
+  listCardFiles,
+  sectionRows,
+  truthOf,
+} from "./card-store.ts";
 import { parseFrontmatterOrSkip, type FmFields } from "./frontmatter.ts";
 
 export type BrainCard = {
@@ -11,6 +16,11 @@ export type BrainCard = {
   readonly why: string;
   readonly from: string;
   readonly date: string;
+  readonly status: string;
+  /** Полный текст для карточки на экране: описание и записи Log. */
+  readonly full: string;
+  /** Устойчивый номер карточки: не зависит от порядка списка. */
+  readonly id: number;
 };
 
 const BY_TYPE: Record<string, string> = {
@@ -32,24 +42,34 @@ const STANDARD = [
   "Софт и новости",
   "Посмотреть",
 ];
-// «Убери» прячет карточку статусом: список тот же, что в agent/instructions/35-vtoroy-mozg.md.
+// «Убери» прячет карточку статусом (agent/instructions/35-vtoroy-mozg.md); superseded — правда,
+// которую заменила другая карточка. Завершённое (done) остаётся видно.
 const HIDDEN = new Set([
   "archived",
   "superseded",
   "inactive",
   "cancelled",
   "reverted",
-  "done",
 ]);
+
+/** FNV-1a: короткий устойчивый номер для кнопок. */
+export function stableId(value: string): number {
+  let hash = 0x811c9dc5;
+  for (const byte of Buffer.from(value.normalize("NFC")))
+    hash = Math.imul(hash ^ byte, 0x01000193) >>> 0;
+  return hash;
+}
 
 const text = (value: unknown): string =>
   typeof value === "string" ? value.trim() : "";
 
 function tagKind(tags: unknown): string | null {
   const list = Array.isArray(tags) ? tags.map(String) : [];
+  // write_card метки только добавляет, поэтому «это в рецепты» — последняя.
   const tag = list
     .map((item) => item.trim().toLowerCase())
-    .find((item) => item.startsWith("вид:"));
+    .filter((item) => item.startsWith("вид:"))
+    .at(-1);
   const name = tag?.slice("вид:".length).trim() ?? "";
   if (!name) return null;
   return BY_TAG[name] ?? `${name[0].toUpperCase()}${name.slice(1)}`;
@@ -68,8 +88,24 @@ function origin(source: string): string {
     : source;
 }
 
-function toCard(fields: FmFields, title: string): BrainCard {
+function toCard(
+  fields: FmFields,
+  title: string,
+  path: string,
+  body: string,
+): BrainCard {
+  const log = (sectionRows(body, "Log") ?? []).map((row) =>
+    row
+      .replace(/^- /u, "")
+      .replace(/\s+·\s+(?:\[\[daily\/[^\]]+\]\].*|daily\/\S+)$/u, "")
+      .trim(),
+  );
   return {
+    id: stableId(path),
+    status: text(fields.status),
+    full: [text(fields.description), truthOf(body), ...log]
+      .filter(Boolean)
+      .join("\n"),
     kind: BY_TYPE[text(fields.type)] ?? tagKind(fields.tags) ?? MISC,
     title,
     why: firstSentence(text(fields.description)) || "не указано",
@@ -78,14 +114,32 @@ function toCard(fields: FmFields, title: string): BrainCard {
   };
 }
 
+// Ночь сливает дубли: файл мог исчезнуть между списком и чтением. Другие сбои — наружу.
+function readCard(file: string): string | null {
+  try {
+    return readFileSync(file, "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    console.error(`[brain] карточка исчезла, пропускаю: ${basename(file)}`);
+    return null;
+  }
+}
+
 /** Видимые карточки, свежие первыми. */
 export function readBrain(vault: string): BrainCard[] {
   return listCardFiles(vault)
     .flatMap((file) => {
-      const parsed = parseFrontmatterOrSkip(readFileSync(file, "utf8"), file);
+      const content = readCard(file);
+      const parsed =
+        content === null ? null : parseFrontmatterOrSkip(content, file);
       if (!parsed?.fields || HIDDEN.has(text(parsed.fields.status))) return [];
       return [
-        toCard(parsed.fields, extractH1(parsed.body) ?? basename(file, ".md")),
+        toCard(
+          parsed.fields,
+          extractH1(parsed.body) ?? basename(file, ".md"),
+          relative(vault, file),
+          parsed.body,
+        ),
       ];
     })
     .sort(

@@ -5,7 +5,8 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { SttError, transcribe, voiceConfigured } from "../transcribe.ts";
+import { SttError, voiceConfigured } from "./stt.ts";
+import { transcribe } from "../transcribe.ts";
 
 type Body = { model: string; input_audio: { data: string; format: string } };
 
@@ -184,3 +185,35 @@ await test("голос настроен, если есть любой из дв�
   assert.equal(voiceConfigured({ OPENROUTER_API_KEY: "a" }), true);
   assert.equal(voiceConfigured({ DEEPGRAM_API_KEY: "a" }), true);
 });
+
+await test("ответ 200 с ошибкой внутри и обрыв связи — понятная причина", async (t) => {
+  setup(
+    t,
+    { OPENROUTER_API_KEY: "or" },
+    () => new Response(JSON.stringify({ error: { message: "bad" } })),
+  );
+  await assert.rejects(
+    transcribe(bytes("x"), { mimeType: "audio/ogg" }),
+    /не смог расшифровать/u,
+  );
+  t.mock.method(globalThis, "fetch", () =>
+    Promise.reject(new TypeError("fetch failed")),
+  );
+  await assert.rejects(
+    transcribe(bytes("x"), { mimeType: "audio/ogg" }),
+    (e: unknown) => e instanceof SttError && /нет связи/u.test(e.message),
+  );
+});
+
+await test(
+  "файл без звука назван так, а не «нет ffmpeg»",
+  { skip: spawnSync("ffmpeg", ["-version"]).status !== 0 },
+  async (t) => {
+    t.mock.method(console, "error", () => undefined);
+    setup(t, { OPENROUTER_API_KEY: "or" }, ok("а"));
+    await assert.rejects(
+      transcribe(bytes("не видео"), { mimeType: "video/mp4", tag: "video" }),
+      /его нет/u,
+    );
+  },
+);
