@@ -77,7 +77,7 @@ and that is what makes the card findable by any of them.
 - Messages and your replies are auto-written to `daily/<today>.md` (the
   transcript hook).
 - Voice, video and audio are transcribed into the daily file before you see
-  them when transcription (Deepgram or OpenRouter key) is set up.
+  them when transcription (Deepgram) is set up.
 - At the installation’s compiled local time (04:00 by default), the single `memory-night` eve schedule processes queued days,
   cards, links, CORE and ready week/month/year summaries; a separate systemd
   watchdog runs the Brain pass. Do not run them by hand.

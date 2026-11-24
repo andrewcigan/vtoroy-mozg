@@ -383,7 +383,7 @@ test("a release that needs a newer updater says so in the chat, command intact",
   const iva = world(t, { locale: "ru" });
   writeFileSync(
     join(iva.home, "update-compat.json"),
-    '{"minUpdater":"99.0.0"}\n',
+    '{"minUpdater":"999.0.0"}\n',
   );
   git(iva.home, ["add", "-A"]);
   git(iva.home, ["commit", "-m", "release that needs a newer updater"]);

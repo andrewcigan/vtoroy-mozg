@@ -2,17 +2,17 @@
 // временного файла с личными записями не остаётся.
 import { readBrain } from "#lib/brain-cards.ts";
 import { buildXlsx } from "#lib/xlsx.ts";
-import { scanOutbound } from "#lib/security-gate.ts";
 import { resolveVaultDir } from "../../packages/vault-dir/index.ts";
 
 const TIMEOUT_MS = 60_000;
 
 export type BrainTableResult = { ok: boolean; count: number; error?: string };
 
-// Тот же исходящий гейт, что у сообщений: ключ, попавший в карточку, в файл не уходит.
-const safe = (value: string): string => scanOutbound(value).text;
-
-function buildTable(): { data: Buffer; count: number } {
+// Тот же исходящий гейт, что у сообщений: ключ, попавший в карточку, в файл не уходит. Импорт
+// ленивый: сломанный гейт не мешает мосту стартовать, а таблица без него просто не отправится.
+async function buildTable(): Promise<{ data: Buffer; count: number }> {
+  const { scanOutbound } = await import("#lib/security-gate.ts");
+  const safe = (value: string): string => scanOutbound(value).text;
   const cards = readBrain(resolveVaultDir(process.cwd()));
   const rows = cards.map((card) =>
     [card.kind, card.title, card.why, card.from, card.date].map(safe),
@@ -32,7 +32,7 @@ export async function sendBrainTable(
 ): Promise<BrainTableResult> {
   let count = 0;
   try {
-    const table = buildTable();
+    const table = await buildTable();
     count = table.count;
     const form = new FormData();
     form.append("chat_id", String(chatId));

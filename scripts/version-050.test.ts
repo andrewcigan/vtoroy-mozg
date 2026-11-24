@@ -444,7 +444,11 @@ void test("StaysOnItsRelease, NothingWritten, RefusedIsTold: shipped v0.3.30/v0.
       ran.said.includes(`Your Iva (${from}) is too old to update itself.`),
       `${tag}\n${ran.said}`,
     );
-    assert.ok(ran.said.includes(check.REPAIR_COMMAND), `${tag}\n${ran.said}`);
+    // Прежние CLI автора печатают свой адрес ремонта: в этой копии он другой (check.REPAIR_COMMAND).
+    assert.ok(
+      ran.said.includes("smixs/iva-agent/main/repair.sh"),
+      `${tag}\n${ran.said}`,
+    );
     assert.deepEqual(listing(home), untouched, tag);
     assert.equal(existsSync(join(home, "handoff.json")), false, tag);
     assert.equal(store.currentName(), before, tag);

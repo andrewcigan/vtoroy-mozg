@@ -2693,7 +2693,7 @@ test("a release that names a newer updater is refused before anything is staged"
   const iva = world(t);
   writeFileSync(
     join(iva.repo, "update-compat.json"),
-    '{"minUpdater":"99.0.0"}\n',
+    '{"minUpdater":"999.0.0"}\n',
   );
   iva.release("0.3.15");
 
@@ -2702,7 +2702,7 @@ test("a release that names a newer updater is refused before anything is staged"
   assert.equal(outcome.status, "too-old", JSON.stringify(outcome));
   assert.equal(
     outcome.status === "too-old" ? outcome.minUpdater : null,
-    "99.0.0",
+    "999.0.0",
   );
   const store = createVersionStore(iva.home);
   assert.deepEqual(store.list(), []);

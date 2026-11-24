@@ -6,6 +6,7 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { SttError, voiceConfigured } from "./stt.ts";
+import { transcribeOpenRouter } from "./stt-openrouter.ts";
 import { transcribe } from "../transcribe.ts";
 
 type Body = { model: string; input_audio: { data: string; format: string } };
@@ -217,3 +218,9 @@ await test(
     );
   },
 );
+
+await test("голосовое без названного типа уходит как ogg", async (t) => {
+  const sent = setup(t, { OPENROUTER_API_KEY: "or" }, ok("а"));
+  assert.equal(await transcribeOpenRouter(bytes("x"), { tag: "voice" }), "а");
+  assert.equal(bodyOf(sent[0].init).input_audio.format, "ogg");
+});

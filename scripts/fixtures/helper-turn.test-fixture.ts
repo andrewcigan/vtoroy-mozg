@@ -107,7 +107,9 @@ async function authoredTurn(root: string, kind: string, telegramAuth = false) {
   >(root, "node_modules/eve/dist/src/runtime/prompt/compose.js");
   const paths = [
     "agent/instructions.md",
-    ...["10-map", "15-skills"].map((name) => `agent/instructions/${name}.md`),
+    ...["10-map", "15-skills", "35-vtoroy-mozg"].map(
+      (name) => `agent/instructions/${name}.md`,
+    ),
   ];
   const staticInstructions = await Promise.all(
     paths.map(async (path) => ({
@@ -452,7 +454,8 @@ export async function wireTurn(
     },
     compaction: {
       threshold: options.compact ? 500 : 100000,
-      recentWindowTokens: 1, summaryMaxOutputTokens: 400,
+      recentWindowTokens: 1,
+      summaryMaxOutputTokens: 400,
     },
     continuationToken: "fixture",
     sessionId: "fixture",

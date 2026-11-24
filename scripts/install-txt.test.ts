@@ -30,7 +30,7 @@ void test("install.txt pins every link to an existing file in the current or nex
     const url = new URL(link);
     assert.equal(url.origin, "https://raw.githubusercontent.com");
     const prefix = tags
-      .map((tag) => `/smixs/iva-agent/${tag}/`)
+      .map((tag) => `/andrewcigan/vtoroy-mozg/${tag}/`)
       .find((candidate) => url.pathname.startsWith(candidate));
     assert.ok(prefix, `${link} must use ${tags.join(" or ")}`);
     const path = url.pathname.slice(prefix.length);
@@ -50,7 +50,7 @@ void test("install.txt lists the complete skill with no duplicate or missing fil
     .sort();
   const actual = [
     ...read("docs/install.txt").matchAll(
-      /https:\/\/raw\.githubusercontent\.com\/smixs\/iva-agent\/[^/]+\/(skills\/install-iva\/[^\s]+)/gu,
+      /https:\/\/raw\.githubusercontent\.com\/andrewcigan\/vtoroy-mozg\/[^/]+\/(skills\/install-iva\/[^\s]+)/gu,
     ),
   ]
     .map((match) => match[1])
@@ -164,11 +164,11 @@ void test("the install skill offers only main and the official IVA_BETA=1 path",
   const skill = read("skills/install-iva/references/iva-state.md");
   assert.match(
     skill,
-    /https:\/\/raw\.githubusercontent\.com\/smixs\/iva-agent\/main\/install\.sh \| bash -s -- --env-file/u,
+    /https:\/\/raw\.githubusercontent\.com\/andrewcigan\/vtoroy-mozg\/main\/install\.sh \| bash -s -- --env-file/u,
   );
   assert.match(
     skill,
-    /https:\/\/raw\.githubusercontent\.com\/smixs\/iva-agent\/beta\/install\.sh \| IVA_BETA=1 bash -s -- --env-file/u,
+    /https:\/\/raw\.githubusercontent\.com\/andrewcigan\/vtoroy-mozg\/beta\/install\.sh \| IVA_BETA=1 bash -s -- --env-file/u,
   );
   assert.doesNotMatch(skill, /IVA_INSTALL_BRANCH|BRANCH=|<branch>/u);
 });

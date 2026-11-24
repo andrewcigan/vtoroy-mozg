@@ -332,7 +332,7 @@ test("repair refuses an installation whose origin is not the project", (t) => {
   })();
 
   assert.equal(failure.status, 1);
-  assert.match(failure.output, /origin is not github\.com\/smixs\/iva-agent/u);
+  assert.match(failure.output, /origin is not github\.com\/andrewcigan\/vtoroy-mozg/u);
 });
 
 // Выпуски (ADR-0017): ремонт чекаута ставит новейший выпуск vX.Y.Z, без меток — вершину;

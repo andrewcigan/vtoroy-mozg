@@ -2,7 +2,6 @@
 // `iva update` код живёт в каталоге версии, а каталоги памяти и данных могут быть своими.
 import { join } from "node:path";
 import { resolveVaultDir } from "../../packages/vault-dir/index.ts";
-import { installLayer } from "../moy-sloy.ts";
 import type { createCliRuntime } from "./runtime.ts";
 
 type CliRuntime = ReturnType<typeof createCliRuntime>;
@@ -11,7 +10,9 @@ export function createSloyCommand(
   root: string,
   runtime: Pick<CliRuntime, "ok" | "dataDirAbs" | "readEnv">,
 ) {
-  return (args: readonly string[]): void => {
+  return async (args: readonly string[]): Promise<void> => {
+    // Ленивый импорт: CLI обязан грузиться и без agent/ (ремонт, старые установки).
+    const { installLayer } = await import("../moy-sloy.ts");
     const source = args[0];
     if (!source) throw new Error("usage: iva sloy <папка моего слоя>");
     const result = installLayer(source, {

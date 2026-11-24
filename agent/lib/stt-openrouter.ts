@@ -4,13 +4,20 @@ import { spawn } from "node:child_process";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { redactNotice } from "./outbox.ts";
 import { SttError, type SttMeta } from "./stt.ts";
 
 const URL_STT = "https://openrouter.ai/api/v1/audio/transcriptions";
 const DEFAULT_MODEL = "openai/gpt-4o-mini-transcribe";
 const TIMEOUT_MS = 120_000;
 const FFMPEG_TIMEOUT_MS = 60_000;
+
+// Журнал: тело ответа без ключа. Исходящий гейт (outbox.ts) сюда не тянем: через меню этот файл
+// грузит мост, а он обязан стартовать и при сломанном гейте.
+function hideKey(text: string): string {
+  const key = (process.env.OPENROUTER_API_KEY ?? "").trim();
+  const masked = key ? text.replaceAll(key, "***") : text;
+  return masked.replace(/sk-[A-Za-z0-9_-]{8,}/gu, "***");
+}
 
 const BY_MIME: Record<string, string> = {
   "audio/ogg": "ogg",
@@ -97,7 +104,7 @@ function runFfmpeg(input: string, output: string): Promise<void> {
         return;
       }
       console.error(
-        `[transcribe] ffmpeg ${String(code ?? killed)}: ${redactNotice(err.slice(0, 300))}`,
+        `[transcribe] ffmpeg ${String(code ?? killed)}: ${hideKey(err.slice(0, 300))}`,
       );
       reject(
         new SttError(
@@ -159,14 +166,14 @@ export async function transcribeOpenRouter(
     if (!res.ok) {
       // Тело — причина провайдера для журнала; человеку идёт короткая понятная фраза.
       console.error(
-        `[transcribe] OpenRouter ${res.status}: ${redactNotice((await res.text()).slice(0, 300))}`,
+        `[transcribe] OpenRouter ${res.status}: ${hideKey((await res.text()).slice(0, 300))}`,
       );
       throw new SttError(reason(res.status));
     }
     const json = (await res.json()) as { text?: unknown; error?: unknown };
     if (json.error !== undefined) {
       console.error(
-        `[transcribe] OpenRouter 200 с ошибкой: ${redactNotice(JSON.stringify(json.error).slice(0, 300))}`,
+        `[transcribe] OpenRouter 200 с ошибкой: ${hideKey(JSON.stringify(json.error).slice(0, 300))}`,
       );
       throw new SttError("OpenRouter не смог расшифровать запись");
     }
