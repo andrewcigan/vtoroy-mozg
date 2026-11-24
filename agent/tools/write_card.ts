@@ -33,6 +33,7 @@ import {
   type FmFields,
   type ParsedFrontmatter,
 } from "../lib/frontmatter.ts";
+import { freshTitle } from "../lib/card-title.ts";
 import { brokenLinksIn } from "../lib/vault-links.ts";
 import { writeFileAtomicSync } from "../lib/fs-atomic.ts";
 import { commitVaultWrite } from "../lib/vault-commit.ts";
@@ -428,6 +429,16 @@ async function writeFact(input: FactInput) {
   return factReply(card.path, changed.dropped);
 }
 
+/** Что карточка утверждала до правки: правда, выжимка и журнал. */
+function knownText(card: CardRecord): string {
+  const { description } = card.parsed.fields ?? {};
+  return [
+    truthOf(card.parsed.body),
+    typeof description === "string" ? description : "",
+    ...(sectionRows(card.parsed.body, "Log") ?? []),
+  ].join("\n");
+}
+
 function truthChange(
   card: CardRecord,
   input: TruthInput,
@@ -448,13 +459,31 @@ function truthChange(
   const moved = disappeared.map(
     (line) => `- ${date}: ${line} (${sanitizeField(input.reason)} · ${source})`,
   );
-  const body = replaceH2Sections(withTruth(card.parsed.body, next), "History", [
+  const title = freshTitle(
+    card.title,
+    knownText(card),
+    `${next}\n${input.description ?? ""}`,
+  );
+  const named =
+    title === card.title
+      ? card.parsed.body
+      : card.parsed.body.replace(/^# .*$/mu, () => `# ${title}`);
+  const body = replaceH2Sections(withTruth(named, next), "History", [
     ...history,
     ...moved,
   ]);
   const fields: FmFields = withStatus(
     {
       ...(card.parsed.fields ?? {}),
+      // Прежнее имя остаётся написанием: старые ссылки и поиск находят карточку.
+      ...(title === card.title
+        ? {}
+        : {
+            aliases: [...new Set([card.title, ...card.aliases])].slice(
+              0,
+              ALIASES_MAX,
+            ),
+          }),
       ...(description ? { description } : {}),
       truth_date: date,
     },

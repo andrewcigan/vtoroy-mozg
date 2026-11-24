@@ -353,6 +353,26 @@ test("write_card: truth не создаёт Card", async () => {
   assert.equal(existsSync(join(VAULT, "cards/notes/нет-такой.md")), false);
 });
 
+test("write_card: после truth старая величина не остаётся в названии", async () => {
+  await callCard({
+    operation: "fact",
+    type: "note",
+    title: "Снижение ставки до 9,5%",
+    text: "Нацбанк снизил ставку до 9,5%.",
+  });
+  const result = await callCard({
+    operation: "truth",
+    type: "note",
+    title: "Снижение ставки до 9,5%",
+    text: "Нацбанк снизил ставку до 9,25%.",
+    reason: "поправка владельца",
+  });
+  assert.equal(result.ok, true, JSON.stringify(result));
+  const body = readFileSync(join(VAULT, `${result.file}.md`), "utf8");
+  assert.match(body, /^# Снижение ставки до 9,25%$/mu);
+  assert.match(body, /aliases: .*9,5%/u);
+});
+
 // ─── write_file ────────────────────────────────────────────────────────────
 
 test("write_file: markdown в library/ с битой ссылкой отказывает", async () => {
