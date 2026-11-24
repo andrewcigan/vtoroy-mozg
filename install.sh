@@ -1175,6 +1175,8 @@ fi
 # Первая установка: Ива сама не пишет и не тратит деньги без спроса, дневной потолок её фоновых
 # ходов задан. Включить: /menu → Уведомления или `iva proactive on`.
 if [ "$SETUP_DONE" = true ] && [ ! -f "$PROJECT_DIR/.iva-installed" ]; then
+  # Живые таблички в сообщении (sendWidget) Telegram сейчас отвергает, и от ответа остаётся подпись.
+  grep -q '^TELEGRAM_WIDGETS=' "$PROJECT_DIR/.env" || printf 'TELEGRAM_WIDGETS=never\n' >>"$PROJECT_DIR/.env"
   if ! (cd "$PROJECT_DIR" && node bin/iva.mjs proactive off && node bin/iva.mjs proactive set ceilingTokensPerDay 500000) </dev/null >/dev/null; then
     warn "$(t "Could not switch off proactive messages — run: iva proactive off" "Не смог выключить сообщения по своей инициативе — запустите: iva proactive off")"
   fi
