@@ -31,6 +31,7 @@ const BY_TYPE: Record<string, string> = {
 };
 const BY_TAG: Record<string, string> = {
   софт: "Софт и новости",
+  новости: "Софт и новости",
   посмотреть: "Посмотреть",
 };
 const MISC = "Разное";
@@ -106,7 +107,8 @@ function toCard(
     full: [text(fields.description), truthOf(body), ...log]
       .filter(Boolean)
       .join("\n"),
-    kind: BY_TYPE[text(fields.type)] ?? tagKind(fields.tags) ?? MISC,
+    // Вид назвал владелец — он важнее типа: поставщик Игорь лежит в «Поставщиках», а не в «Людях».
+    kind: tagKind(fields.tags) ?? BY_TYPE[text(fields.type)] ?? MISC,
     title,
     why: firstSentence(text(fields.description)) || "не указано",
     from: origin(text(fields.source)),

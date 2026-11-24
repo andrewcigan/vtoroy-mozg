@@ -529,7 +529,7 @@ await test("каждый формат ключа режется без .env: о�
 const NOT_KEYS: readonly string[] = [
   "9f27c3a6d1e5b2c4a8f0e3d7b6c5a4f3e2d1c0b9",
   "commit 61470125 docs(skills): only under a one-item message",
-  "https://github.com/smixs/iva-agent/issues/new?title=x&body=y",
+  "https://github.com/andrewcigan/vtoroy-mozg/issues/new?title=x&body=y",
   "load the skills folder",
   "skills",
   "sk-learn",

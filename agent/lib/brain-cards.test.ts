@@ -136,3 +136,16 @@ await test("пустой мозг и битая карточка не роняю
   assert.deepEqual(readBrain(join(dir, "нет")), []);
   assert.ok(Array.isArray(readBrain(dir)));
 });
+
+await test("вид, названный владельцем, важнее типа карточки", (t) => {
+  const dir = vault({
+    "cards/contacts/i.md": card(
+      'type: "contact"\ndescription: "Поставщик"\ntags: ["вид:поставщики"]\nstatus: "active"\ncreated: "2026-11-24"',
+      "Игорь",
+    ),
+  });
+  t.after(() => {
+    rmSync(dir, { recursive: true, force: true });
+  });
+  assert.equal(readBrain(dir)[0]?.kind, "Поставщики");
+});

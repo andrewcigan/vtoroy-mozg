@@ -21,8 +21,7 @@ A Mac target: same table, run locally (no `ssh iva`).
 
 ## Branch
 
-Install the release from `main` by default. If the person explicitly asks for beta, fetch the beta installer and set
-`IVA_BETA=1` for the installer process. These are the two supported installation paths.
+Install the release from `main`. There is no beta branch in this version.
 
 ## 4.1 First install
 
@@ -33,11 +32,6 @@ ssh iva 'umask 077; cat > ~/iva-setup.env' < <local env file>
 ssh iva 'curl -fsSL https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/main/install.sh | bash -s -- --env-file ~/iva-setup.env; rc=$?; rm -f ~/iva-setup.env; exit $rc'
 ```
 
-For an explicitly requested beta installation, use this installer command instead:
-
-```bash
-ssh iva 'curl -fsSL https://raw.githubusercontent.com/andrewcigan/vtoroy-mozg/beta/install.sh | IVA_BETA=1 bash -s -- --env-file ~/iva-setup.env; rc=$?; rm -f ~/iva-setup.env; exit $rc'
-```
 
 `--env-file` runs without questions, including when a terminal is available. It is accepted for a first install or an
 interrupted first install; a completed installation uses `iva config` instead.

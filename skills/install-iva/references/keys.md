@@ -27,5 +27,18 @@ ASSISTANT_TIMEZONE=<tz>
 
 Subscriptions (Claude, ChatGPT) are not offered in this version: the model is OpenRouter. Everything else the installer fills in.
 
+## Reading the ID without seeing the keys
+
+Load the file in a child shell; print only the id and the name, never the URL with the token:
+
+```bash
+( set -a; . moy-mozg/klyuchi.env; set +a
+  curl -fsS "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/getUpdates" ) \
+  | python3 -c 'import json,sys; print({(m["from"]["id"], m["from"].get("first_name")) for u in json.load(sys.stdin)["result"] if (m:=u.get("message"))})'
+```
+
+Windows PowerShell: read the line with `Select-String`, keep the token in a variable, call `Invoke-RestMethod`, print only
+`message.from.id` and `first_name`. Then write the id into `TELEGRAM_ALLOWED_USER_IDS` of the same file.
+
 A bot already connected to another service (a webhook is set — `getWebhookInfo` shows a URL) answers nobody through
 Iva: ask the person before `deleteWebhook`.

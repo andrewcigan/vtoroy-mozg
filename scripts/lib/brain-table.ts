@@ -10,10 +10,12 @@ export type BrainTableResult = { ok: boolean; count: number; error?: string };
 
 // Тот же исходящий гейт, что у сообщений: ключ, попавший в карточку, в файл не уходит. Импорт
 // ленивый: сломанный гейт не мешает мосту стартовать, а таблица без него просто не отправится.
-async function buildTable(): Promise<{ data: Buffer; count: number }> {
+async function buildTable(
+  vault: string,
+): Promise<{ data: Buffer; count: number }> {
   const { scanOutbound } = await import("#lib/security-gate.ts");
   const safe = (value: string): string => scanOutbound(value).text;
-  const cards = readBrain(resolveVaultDir(process.cwd()));
+  const cards = readBrain(vault);
   const rows = cards.map((card) =>
     [card.kind, card.title, card.why, card.from, card.date].map(safe),
   );
@@ -28,11 +30,12 @@ export async function sendBrainTable(
   {
     token = process.env.TELEGRAM_BOT_TOKEN ?? "",
     fetchImpl = fetch,
-  }: { token?: string; fetchImpl?: typeof fetch } = {},
+    vault = resolveVaultDir(process.cwd()),
+  }: { token?: string; fetchImpl?: typeof fetch; vault?: string } = {},
 ): Promise<BrainTableResult> {
   let count = 0;
   try {
-    const table = await buildTable();
+    const table = await buildTable(vault);
     count = table.count;
     const form = new FormData();
     form.append("chat_id", String(chatId));

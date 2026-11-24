@@ -43,10 +43,10 @@ await test("раздел листается по 6, последняя стра�
   )?.[1];
   assert.ok(at);
   const first = view(Number(at), dir);
-  assert.equal(first.match(/^\*\*\d\. /gmu)?.length, 6);
+  assert.equal(first.match(/^\*\*\d+\. /gmu)?.length, 6);
   assert.match(first, /1\/3/u);
-  assert.equal(view(Number(at) + 2, dir).match(/^\*\*\d\. /gmu)?.length, 2);
-  assert.equal(view(Number(at) + 99, dir).match(/^\*\*\d\. /gmu)?.length, 2);
+  assert.equal(view(Number(at) + 2, dir).match(/^\*\*\d+\. /gmu)?.length, 2);
+  assert.equal(view(Number(at) + 99, dir).match(/^\*\*\d+\. /gmu)?.length, 2);
   assert.match(first, /Зачем \d+\. · канал «К» · 24\.11\.2026/u);
 });
 
@@ -152,4 +152,18 @@ await test("ключ из карточки в Excel не уходит", async ()
   });
   assert.match(size, /Зачем 0/u);
   assert.doesNotMatch(size, /sk-or-v1-aaaa/u);
+});
+
+await test("на второй странице номера идут дальше, назад из карточки ведёт на неё же", () => {
+  const dir = vaultWith(8);
+  const at = Number(
+    /iva_menu:br:pg:(\d+)[^>]*>Софт и новости 8/u.exec(view(0, dir))?.[1],
+  );
+  const second = view(at + 1, dir);
+  assert.match(second, /^\*\*7\. /mu);
+  const card = /iva_menu:br:pg:(\d+)[^>]*>7</u.exec(second)?.[1];
+  assert.match(
+    view(Number(card), dir),
+    new RegExp(`iva_menu:br:pg:${at + 1}[^>]*>‹ Назад`, "u"),
+  );
 });

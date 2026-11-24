@@ -69,7 +69,7 @@ const SECTION_ITEM_LIMIT = 100;
 const TURN_SECTION_CHARS = 3000;
 /** Адрес issue целиком, после процентного кодирования: столько прошло кнопкой Telegram на c1. */
 export const ISSUE_URL_BYTES = 5500;
-const ISSUE_NEW = "https://github.com/smixs/iva-agent/issues/new";
+const ISSUE_NEW = "https://github.com/andrewcigan/vtoroy-mozg/issues/new";
 const ERROR_CHARS = 300;
 const VALUE_CHARS = 60;
 const FRAME_CHARS = 200;

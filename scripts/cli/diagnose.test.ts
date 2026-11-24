@@ -893,7 +893,7 @@ await test("--turn A/turn_0: the skeleton of that turn right after the versions,
   );
   assert.deepEqual(printed, [`Diagnose package: ${path}`, `issue-url: ${url}`]);
   const issue = decoded(url);
-  assert.equal(issue.origin, "https://github.com/smixs/iva-agent/issues/new");
+  assert.equal(issue.origin, "https://github.com/andrewcigan/vtoroy-mozg/issues/new");
   assert.equal(issue.title, "[iva] bash: exit 2 (9.9.9)");
   const full =
     "\n\nFull package: data/diagnose/2026-09-12T15-04-07-000Z.md on the owner's machine";

@@ -87,14 +87,20 @@ function list(kind: string, cards: BrainCard[], page: number, T: Tr): string {
   const shown = mine.slice(now * PER_PAGE, now * PER_PAGE + PER_PAGE);
   const rows = shown.map(
     (card, i) =>
-      `**${i + 1}. ${cut(card.title, TITLE_MAX)}**\n${cut(card.why, WHY_MAX)} · ${cut(card.from, FROM_MAX)} · ${cut(day(card.date), FROM_MAX)}`,
+      `**${now * PER_PAGE + i + 1}. ${cut(card.title, TITLE_MAX)}**\n${cut(card.why, WHY_MAX)} · ${cut(card.from, FROM_MAX)} · ${cut(day(card.date), FROM_MAX)}`,
   );
   const last = pages - 1;
   return [
     `# ${cut(kind, TITLE_MAX)} · ${mine.length}`,
     ...(rows.length ? rows : [T("Nothing here yet.", "Здесь пока ничего.")]),
     ...(shown.length
-      ? [buttonRow(shown.map((card, i) => open(`${i + 1}`, CARD + card.id)))]
+      ? [
+          buttonRow(
+            shown.map((card, i) =>
+              open(`${now * PER_PAGE + i + 1}`, CARD + card.id),
+            ),
+          ),
+        ]
       : []),
     ...(pages > 1
       ? [
@@ -109,7 +115,11 @@ function list(kind: string, cards: BrainCard[], page: number, T: Tr): string {
   ].join("\n\n");
 }
 
-function one(card: BrainCard, T: Tr): string {
+function one(card: BrainCard, cards: BrainCard[], T: Tr): string {
+  const at = cards
+    .filter((item) => item.kind === card.kind)
+    .findIndex((item) => item.id === card.id);
+  const page = Math.floor(at / PER_PAGE);
   return [
     `# ${cut(card.title, TITLE_MAX)}`,
     cut(card.full || card.why, FULL_MAX),
@@ -118,14 +128,14 @@ function one(card: BrainCard, T: Tr): string {
       "To change it, tell me in words: “fix…”, “remove…”.",
       "Изменить — словами: «исправь…», «убери…».",
     ),
-    open(T("‹ Back", "‹ Назад"), kindPage(card.kind)),
+    open(T("‹ Back", "‹ Назад"), kindPage(card.kind, page)),
   ].join("\n\n");
 }
 
 function screen(page: number, cards: BrainCard[], T: Tr): string {
   if (page >= CARD) {
     const card = cards.find((item) => item.id === page - CARD);
-    return card ? one(card, T) : root(cards, T);
+    return card ? one(card, cards, T) : root(cards, T);
   }
   if (page >= KIND) {
     const id = Math.floor((page - KIND) / STEP);

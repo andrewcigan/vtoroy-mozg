@@ -16,6 +16,7 @@ import { createSloyCommand } from "./sloy.ts";
 import { createCliRuntime } from "./runtime.ts";
 import { createServiceCommands } from "./services.ts";
 import { createCliSystemd } from "./systemd.ts";
+import { createTablicaCommand } from "./tablica.ts";
 import { createTraceCommands } from "./trace.ts";
 import { createTreeRenderer } from "./tree.ts";
 import { createUserbotCommands, reinstallUserbot } from "./userbot.ts";
@@ -125,6 +126,7 @@ ${C.b}Commands:${C.x}
   ${C.c}iva night${C.x} show|set <key> <value>  Night memory limits and ceilings
   ${C.c}iva signal${C.x} <source> <text> [--key <k>]  pass a plugin's Signal to Iva; the same key is skipped while pending
   ${C.c}iva sloy${C.x} <folder>  install or update your own layer: rules, skills, about me
+  ${C.c}iva tablica${C.x}        send the second brain as an Excel file
   ${C.c}iva post${C.x} --md-file <p>  rich Telegram post to the digest chat or an allowlisted --chat
   ${C.c}iva userbot${C.x} [creds|setup|status|diagnose --json|off]  personal-account userbot proxy
   ${C.c}iva logs${C.x} [poll]     agent logs (or the Telegram bridge) -f
@@ -193,6 +195,7 @@ export function createCliMain(root: string) {
     night: createNightCommand(runtime),
     signal: cmdSignal,
     sloy: createSloyCommand(root, runtime),
+    tablica: createTablicaCommand(root, runtime),
     start: services.cmdStart,
     stop: services.cmdStop,
     logs: services.cmdLogs,

@@ -15,7 +15,7 @@ Done means the bot answered the person — not that the installer printed "ready
 Tell the person, in their language, in at most 8 lines:
 - Iva is installed and answers in @<bot username>;
 - to reach the server: `ssh iva` — macOS: in Terminal; Windows: in PowerShell or Windows Terminal;
-- voice and web search: in the bot, `/menu`;
+- voice already works; “покажи мой мозг” shows what the bot remembers; web search is in `/menu`;
 - the server password from the email no longer works; access is by this computer's key (`~/.ssh/iva_ed25519`) —
   keep it, and keep `~/.ssh/iva_sudo_password` (the server's admin password) private;
 - running this again later checks and repairs Iva.
