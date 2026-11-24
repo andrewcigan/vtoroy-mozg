@@ -193,6 +193,7 @@ void test("main composition exposes the exact legacy command key set without exe
     "proactive",
     "night",
     "signal",
+    "sloy",
     "start",
     "stop",
     "logs",
