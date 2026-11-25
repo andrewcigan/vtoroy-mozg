@@ -1,10 +1,13 @@
 # Мой слой — сразу после установщика, до первых сообщений
 
 Папка `moy-mozg/` на компьютере человека: `pravila.md`, `obo-mne.md`, `navyki/*.md`. Ключи
-(`klyuchi.env`) не переносим.
+(`klyuchi.env`, файл ключа сервера), `.git` и остальные файлы проекта не переносим: в команде названы только эти три
+вещи. Нет одной из них — не клади пустую, сначала сделай её по шаблону. На Mac `COPYFILE_DISABLE=1` обязателен: иначе в
+архив попадают служебные файлы `._*`, и `iva sloy` откажет. В PowerShell двоичный архив через `|` ломается — запускай из
+Git Bash.
 
 ```bash
-tar -C moy-mozg --exclude klyuchi.env -cf - . | ssh iva 'umask 077; rm -rf ~/moy-mozg && mkdir ~/moy-mozg && tar -C ~/moy-mozg -xf -'
+COPYFILE_DISABLE=1 tar -C moy-mozg -cf - pravila.md obo-mne.md navyki | ssh iva 'umask 077; rm -rf ~/moy-mozg && mkdir ~/moy-mozg && tar -C ~/moy-mozg -xf -'
 ssh iva 'export PATH=$HOME/.local/bin:$PATH; iva sloy ~/moy-mozg'
 ```
 

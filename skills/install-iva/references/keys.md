@@ -5,7 +5,7 @@ Ask only for what the installer cannot know. Each answer goes into a file with m
 | Key | How the person gets it | Check before use |
 |---|---|---|
 | Model | OpenRouter only: the person writes the key into `moy-mozg/klyuchi.env` themselves; the model is already there. Ask them to set a spending limit on the key | the installer validates the key |
-| Bot token | Telegram → @BotFather → `/newbot` → a name → a username ending in `bot` → copy the token | `getMe` returns `ok: true`; note the username |
+| Bot token | A NEW bot, never one that already works somewhere: Telegram → @BotFather → `/newbot` → a name → a username ending in `bot` → copy the token | `getMe` returns `ok: true`; note the username |
 | Person's Telegram ID | "Send your new bot any message." Then read it once: `getUpdates` → `message.from.id` and first name; confirm the name with the person. Do this before Iva starts — after that Iva owns the updates | a number, the confirmed name matches |
 | Timezone | from the person's computer (pre-flight), confirm | IANA name, e.g. `Asia/Tashkent` |
 | Language | the language the person writes to you in | `ru` or `en` |
@@ -41,4 +41,15 @@ Windows PowerShell: read the line with `Select-String`, keep the token in a vari
 `message.from.id` and `first_name`. Then write the id into `TELEGRAM_ALLOWED_USER_IDS` of the same file.
 
 A bot already connected to another service (a webhook is set — `getWebhookInfo` shows a URL) answers nobody through
-Iva: ask the person before `deleteWebhook`.
+Iva.
+
+One token — one program. `getUpdates` answers `409 Conflict` ("terminated by other getUpdates request"), or `getWebhookInfo`
+shows a URL → this bot already works somewhere else, and Iva would silence it. Do not delete the webhook and do not retry:
+tell the person in one phrase "этот бот уже где-то работает, нужен новый", ask for a new one from @BotFather
+(`/newbot`, Start, "привет") and for its token in `klyuchi.env`.
+
+## The key file itself, before use
+
+Check without printing values: the name is exactly `klyuchi.env` (Notepad may save `klyuchi.env.txt` — rename), no BOM and no
+`\r` (Notepad adds both — strip them), no spaces or quotes around `=` values, every needed line is filled. Fix it yourself;
+an empty line → name the line to the person.

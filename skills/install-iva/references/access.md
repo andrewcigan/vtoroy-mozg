@@ -42,6 +42,23 @@ Host key changed ("REMOTE HOST IDENTIFICATION HAS CHANGED"): the server was rein
      password once.
    This way the model never sees the new password. Then check `ssh -o BatchMode=yes -i <key> root@<IP> true`.
 
+## 2.3a First login with a key file (Tencent Cloud Lighthouse, AWS and others)
+
+The host gave a private key file (`.pem`, `.key`) instead of a password; the login may be `ubuntu`, `debian` or `root`.
+
+1. Move the file out of the project and Downloads into `~/.ssh/iva_server_key`; `chmod 600` (Windows: `icacls` as in 2.1,
+   with this file's path). Never print its contents. `PPK` (first line `PuTTY-User-Key-File`) → ask for the OpenSSH/PEM file.
+2. Find the login without asking: `ssh -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=8 -i ~/.ssh/iva_server_key
+   <login>@<IP> 'id -un; sudo -n true && echo SUDO'` for `ubuntu`, then `root` (two attempts; the key was bound to the
+   server in the host panel — "Permission denied" on both means it is not bound or belongs to another server: say so, stop).
+3. Login is not root but `SUDO` is printed: run every "as root" command of step 3 through `sudo`. Do not open root login and
+   do not set a root password. `scp` to `/tmp/`, then `sudo mv` it to `/root/`; `cat > /root/iva-pass` becomes
+   `sudo sh -c 'umask 077; cat > /root/iva-pass'`; bootstrap:
+   `sudo IVA_USER=iva IVA_PASS="$(sudo cat /root/iva-pass)" … bash /root/bootstrap.sh --non-interactive`.
+   No `SUDO` → stop and tell the person.
+4. Make the person's own key (2.1) and pass it as `IVA_PUBKEY`; the host's key stays for the original login as a spare.
+   Keep that session open until `ssh -o BatchMode=yes iva true` works.
+
 ## 2.4 The short name
 
 Add this block to `~/.ssh/config` (Windows: `$env:USERPROFILE\.ssh\config`) if no `Host iva` exists; if one exists with
